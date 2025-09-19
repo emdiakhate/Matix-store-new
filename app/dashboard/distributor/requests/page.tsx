@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import DistributorLayout from '@/components/layouts/DistributorLayout';
+import OffersModal from '@/components/OffersModal';
+import CreateRequestModal, { NewRequestData } from '@/components/CreateRequestModal';
 import { 
   Plus,
   Eye,
@@ -16,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useSupabase';
 import { deliveryRequestService } from '@/lib/services';
+import { getOffersForDemand, acceptOffer, rejectOffer } from '@/lib/actions/offers';
 
 interface Request {
   id: string;
@@ -41,12 +44,143 @@ export default function RequestsPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [requests, setRequests] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showOffersModal, setShowOffersModal] = useState(false);
+  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [offersData, setOffersData] = useState<any>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Le layout utilisera les données par défaut du distributeur
 
   useEffect(() => {
     loadRequests();
   }, []);
+
+  const handleViewOffers = async (request: Request) => {
+    setSelectedRequest(request);
+    
+    try {
+      // Charger les offres pour cette demande
+      const data = await getOffersForDemand(request.id);
+      setOffersData(data);
+    } catch (error) {
+      console.error('Erreur lors du chargement des offres:', error);
+      // Utiliser des données mockées en cas d'erreur
+      setOffersData({
+        demand: {
+          id: request.id,
+          title: request.title,
+          description: request.description,
+          category: request.category,
+          quantity: request.quantity,
+          budget: request.budget,
+          location: request.location,
+          due_date: request.deadline
+        },
+        offers: [
+          {
+            id: '1',
+            producer_id: 'prod1',
+            producer_name: 'Ferme Avicole de Dakar',
+            product_name: 'Poulets fermiers',
+            proposed_price: 4500,
+            quantity: 30,
+            message: 'Nous pouvons fournir des poulets de qualité supérieure avec livraison rapide.',
+            status: 'pending',
+            created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
+            is_read: false
+          },
+          {
+            id: '2',
+            producer_id: 'prod2',
+            producer_name: 'Élevage Traditionnel du Sénégal',
+            product_name: 'Poulets fermiers',
+            proposed_price: 4200,
+            quantity: 25,
+            message: 'Poulets élevés en liberté, prix compétitif.',
+            status: 'pending',
+            created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+            is_read: false
+          },
+          {
+            id: '3',
+            producer_id: 'prod3',
+            producer_name: 'Bio Sénégal',
+            product_name: 'Poulets bio',
+            proposed_price: 5000,
+            quantity: 20,
+            message: 'Poulets biologiques certifiés, qualité premium.',
+            status: 'pending',
+            created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+            is_read: false
+          }
+        ]
+      });
+    }
+    
+    setShowOffersModal(true);
+  };
+
+  const handleAcceptOffer = async (offerId: string) => {
+    try {
+      await acceptOffer(offerId, user?.id || '');
+      
+      // Marquer la demande comme "expired" (offre acceptée)
+      if (selectedRequest) {
+        setRequests(prevRequests => 
+          prevRequests.map(request => 
+            request.id === selectedRequest.id 
+              ? { ...request, status: 'expired' as const }
+              : request
+          )
+        );
+      }
+      
+      alert('Offre acceptée avec succès ! La demande a été marquée comme expirée.');
+      setShowOffersModal(false);
+    } catch (error) {
+      console.error('Erreur lors de l\'acceptation:', error);
+      alert('Erreur lors de l\'acceptation de l\'offre');
+    }
+  };
+
+  const handleRejectOffer = async (offerId: string) => {
+    try {
+      await rejectOffer(offerId, user?.id || '');
+      alert('Offre refusée');
+      // Recharger les demandes pour mettre à jour les compteurs
+      loadRequests();
+    } catch (error) {
+      console.error('Erreur lors du refus:', error);
+      alert('Erreur lors du refus de l\'offre');
+    }
+  };
+
+  const handleCreateRequest = (requestData: NewRequestData) => {
+    // Générer un ID unique pour la nouvelle demande
+    const newId = (requests.length + 1).toString();
+    
+    // Créer la nouvelle demande
+    const newRequest: Request = {
+      id: newId,
+      title: requestData.title,
+      description: requestData.description,
+      quantity: requestData.quantity,
+      unit: requestData.unit,
+      category: requestData.category,
+      status: 'active',
+      created_at: new Date().toISOString().split('T')[0],
+      deadline: requestData.deadline,
+      budget: requestData.budget,
+      location: requestData.location,
+      offers_count: 0,
+      tags: requestData.tags
+    };
+
+    // Ajouter la nouvelle demande à la liste
+    setRequests(prevRequests => [newRequest, ...prevRequests]);
+    
+    alert('Demande créée avec succès !');
+  };
 
   const loadRequests = async () => {
     try {
@@ -65,7 +199,7 @@ export default function RequestsPage() {
           deadline: '2025-09-20',
           budget: 150000,
           location: 'Dakar, Sénégal',
-          offers_count: 0,
+          offers_count: 3,
           tags: ['Volailles Vivantes']
         },
         {
@@ -80,7 +214,7 @@ export default function RequestsPage() {
           deadline: '2025-09-14',
           budget: 225000,
           location: 'Thiès, Sénégal',
-          offers_count: 0,
+          offers_count: 3,
           tags: ['Volailles Vivantes']
         },
         {
@@ -94,7 +228,7 @@ export default function RequestsPage() {
           created_at: '2025-09-13',
           deadline: '2025-09-20',
           location: 'Kaolack, Sénégal',
-          offers_count: 0,
+          offers_count: 3,
           tags: ['Volailles Vivantes']
         },
         {
@@ -108,7 +242,7 @@ export default function RequestsPage() {
           created_at: '2025-09-13',
           deadline: '2025-09-18',
           location: 'Dakar, Sénégal',
-          offers_count: 0,
+          offers_count: 3,
           tags: ['Œufs & Reproduction']
         },
         {
@@ -122,8 +256,36 @@ export default function RequestsPage() {
           created_at: '2025-09-13',
           deadline: '2025-09-25',
           location: 'Thiès, Sénégal',
-          offers_count: 0,
+          offers_count: 3,
           tags: ['Équipements']
+        },
+        {
+          id: '6',
+          title: 'Poulets fermiers - Offre acceptée',
+          description: 'Commande de poulets fermiers de qualité (offre acceptée)',
+          quantity: 100,
+          unit: 'pièces',
+          category: 'Volailles Vivantes',
+          status: 'expired',
+          created_at: '2025-09-10',
+          deadline: '2025-09-15',
+          location: 'Dakar, Sénégal',
+          offers_count: 5,
+          tags: ['Volailles Vivantes', 'Acceptée']
+        },
+        {
+          id: '7',
+          title: 'Œufs frais - Offre acceptée',
+          description: 'Approvisionnement en œufs frais (offre acceptée)',
+          quantity: 500,
+          unit: 'unités',
+          category: 'Œufs',
+          status: 'expired',
+          created_at: '2025-09-08',
+          deadline: '2025-09-12',
+          location: 'Thiès, Sénégal',
+          offers_count: 3,
+          tags: ['Œufs', 'Acceptée']
         }
       ];
       
@@ -136,11 +298,38 @@ export default function RequestsPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    return (
-      <Badge className="bg-green-100 text-green-800 border-green-200">
-        Actif
-      </Badge>
-    );
+    switch (status) {
+      case 'active':
+        return (
+          <Badge className="bg-green-100 text-green-800 border-green-200">
+            Actif
+          </Badge>
+        );
+      case 'expired':
+        return (
+          <Badge className="bg-red-100 text-red-800 border-red-200">
+            Expiré
+          </Badge>
+        );
+      case 'draft':
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+            Brouillon
+          </Badge>
+        );
+      case 'closed':
+        return (
+          <Badge className="bg-blue-100 text-blue-800 border-blue-200">
+            Fermé
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
+            {status}
+          </Badge>
+        );
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -171,6 +360,7 @@ export default function RequestsPage() {
   });
 
   const activeRequests = requests.filter(r => r.status === 'active').length;
+  const expiredRequests = requests.filter(r => r.status === 'expired').length;
   const totalOffers = requests.reduce((sum, r) => sum + r.offers_count, 0);
   const totalRequests = requests.length;
 
@@ -189,10 +379,36 @@ export default function RequestsPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Gestion des Demandes</h1>
-        <Button className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2">
+        <Button 
+          onClick={() => setShowCreateModal(true)}
+          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+        >
           <Plus className="h-4 w-4" />
           Nouvelle Demande
         </Button>
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white p-6 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-gray-900 mb-1">{activeRequests}</div>
+          <div className="text-sm text-gray-600">Demandes actives</div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-gray-900 mb-1">{totalOffers}</div>
+          <div className="text-sm text-gray-600">Offres reçues</div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-gray-900 mb-1">{expiredRequests}</div>
+          <div className="text-sm text-gray-600">Demandes expirées</div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border text-center">
+          <div className="text-2xl font-bold text-gray-900 mb-1">{totalRequests}</div>
+          <div className="text-sm text-gray-600">Total demandes</div>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -264,7 +480,12 @@ export default function RequestsPage() {
                   
                   <div className="flex items-center gap-2">
                     <span className="text-gray-500">Offres:</span>
-                    <span className="font-medium">{request.offers_count} offre</span>
+                    <button
+                      onClick={() => handleViewOffers(request)}
+                      className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+                    >
+                      {request.offers_count} offre{request.offers_count > 1 ? 's' : ''}
+                    </button>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -328,23 +549,25 @@ export default function RequestsPage() {
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-6 rounded-lg border text-center">
-          <div className="text-2xl font-bold text-gray-900 mb-1">{activeRequests}</div>
-          <div className="text-sm text-gray-600">Demandes actives</div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg border text-center">
-          <div className="text-2xl font-bold text-gray-900 mb-1">{totalOffers}</div>
-          <div className="text-sm text-gray-600">Offres reçues</div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg border text-center">
-          <div className="text-2xl font-bold text-gray-900 mb-1">{totalRequests}</div>
-          <div className="text-sm text-gray-600">Total demandes</div>
-        </div>
-      </div>
+
+      {/* Modal des Offres */}
+      {showOffersModal && selectedRequest && offersData && (
+        <OffersModal
+          isOpen={showOffersModal}
+          onClose={() => setShowOffersModal(false)}
+          demand={offersData.demand}
+          offers={offersData.offers}
+          onAcceptOffer={handleAcceptOffer}
+          onRejectOffer={handleRejectOffer}
+        />
+      )}
+
+      {/* Modal de Création de Demande */}
+      <CreateRequestModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateRequest}
+      />
     </DistributorLayout>
   );
 }

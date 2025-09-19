@@ -1,298 +1,400 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
 import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AlertCard from '@/components/AlertCard';
+import NotificationsSidebar from '@/components/NotificationsSidebar';
+import CreateAlertModal, { NewAlertData } from '@/components/CreateAlertModal';
 import { 
   Plus,
-  Edit,
-  X
+  Search,
+  Filter,
+  Bell
 } from 'lucide-react';
 
+interface Alert {
+  id: string;
+  name: string;
+  criteria: string;
+  category: string;
+  priceRange?: number;
+  stockMinimum?: number;
+  distance: number;
+  frequency: 'immediate' | 'daily' | 'weekly';
+  status: 'active' | 'paused';
+  matches: number;
+  lastNotification: string;
+  created_at: string;
+}
+
+interface Notification {
+  id: string;
+  type: 'match' | 'alert' | 'system';
+  title: string;
+  message: string;
+  time: string;
+  isRead: boolean;
+  alertName?: string;
+}
+
 export default function AlertsPage() {
-  const [showModal, setShowModal] = useState(false);
-  const [newAlert, setNewAlert] = useState({
-    name: '',
-    category: '',
-    maxPrice: '',
-    minStock: '',
-    maxDistance: 50,
-    frequency: 'immediate'
-  });
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
 
-  const alerts = [
-    {
-      name: "Poulets < 4000 FCFA",
-      criteria: "Volailles, max 4000F, rayon 30km",
-      lastNotification: "Il y a 2h",
-      matches: 3,
-      status: "Active"
-    },
-    {
-      name: "Stock Œufs > 200",
-      criteria: "Œufs, stock min 200, max 25km",
-      lastNotification: "Hier",
-      matches: 1,
-      status: "Active"
-    },
-    {
-      name: "Équipements Neufs",
-      criteria: "Catégorie équipements, état neuf",
-      lastNotification: "Il y a 5j",
+  // Données mockées
+  useEffect(() => {
+    const mockAlerts: Alert[] = [
+      {
+        id: '1',
+        name: 'Poulets < 4000 FCFA',
+        criteria: 'Poulets fermiers, qualité bio',
+        category: 'Volailles & Viandes',
+        priceRange: 4000,
+        stockMinimum: 50,
+        distance: 30,
+        frequency: 'immediate',
+        status: 'active',
+        matches: 3,
+        lastNotification: 'Il y a 2h',
+        created_at: '2025-09-15'
+      },
+      {
+        id: '2',
+        name: 'Stock Œufs > 200',
+        criteria: 'Œufs frais, catégorie A',
+        category: 'Œufs & Reproduction',
+        stockMinimum: 200,
+        distance: 25,
+        frequency: 'daily',
+        status: 'active',
+        matches: 1,
+        lastNotification: 'Hier',
+        created_at: '2025-09-14'
+      },
+      {
+        id: '3',
+        name: 'Équipements Neufs',
+        criteria: 'Mangeoires, abreuvoirs automatiques',
+        category: 'Équipements',
+        priceRange: 15000,
+        distance: 50,
+        frequency: 'weekly',
+        status: 'paused',
+        matches: 0,
+        lastNotification: 'Il y a 5j',
+        created_at: '2025-09-10'
+      },
+      {
+        id: '4',
+        name: 'Aliments Bio',
+        criteria: 'Aliments biologiques, sans OGM',
+        category: 'Aliments Avicoles',
+        priceRange: 8000,
+        stockMinimum: 100,
+        distance: 40,
+        frequency: 'immediate',
+        status: 'active',
+        matches: 2,
+        lastNotification: 'Il y a 1h',
+        created_at: '2025-09-12'
+      }
+    ];
+
+    const mockNotifications: Notification[] = [
+      {
+        id: '1',
+        type: 'match',
+        title: 'Nouveau match trouvé !',
+        message: '3 poulets fermiers correspondent à vos critères',
+        time: 'Il y a 2h',
+        isRead: false,
+        alertName: 'Poulets < 4000 FCFA'
+      },
+      {
+        id: '2',
+        type: 'alert',
+        title: 'Alerte activée',
+        message: 'Votre alerte "Stock Œufs > 200" est maintenant active',
+        time: 'Hier',
+        isRead: true,
+        alertName: 'Stock Œufs > 200'
+      },
+      {
+        id: '3',
+        type: 'match',
+        title: 'Nouveau match trouvé !',
+        message: '2 aliments bio disponibles dans votre zone',
+        time: 'Il y a 1h',
+        isRead: false,
+        alertName: 'Aliments Bio'
+      },
+      {
+        id: '4',
+        type: 'system',
+        title: 'Mise à jour système',
+        message: 'Nouvelles fonctionnalités disponibles',
+        time: 'Il y a 3j',
+        isRead: true
+      }
+    ];
+
+    setAlerts(mockAlerts);
+    setNotifications(mockNotifications);
+    setLoading(false);
+  }, []);
+
+  const handleCreateAlert = (alertData: NewAlertData) => {
+    // Générer un ID unique pour la nouvelle alerte
+    const newId = (alerts.length + 1).toString();
+    
+    // Créer la nouvelle alerte
+    const newAlert: Alert = {
+      id: newId,
+      name: alertData.name,
+      criteria: alertData.criteria,
+      category: alertData.category,
+      priceRange: alertData.priceRange,
+      stockMinimum: alertData.stockMinimum,
+      distance: alertData.distance,
+      frequency: alertData.frequency,
+      status: 'active',
       matches: 0,
-      status: "Pause"
-    }
-  ];
+      lastNotification: 'Maintenant',
+      created_at: new Date().toISOString().split('T')[0]
+    };
 
-  const getStatusBadge = (status: string) => {
-    const statusStyles = {
-      'Active': 'bg-green-100 text-green-800',
-      'Pause': 'bg-orange-100 text-orange-800',
-      'Fermée': 'bg-gray-100 text-gray-800'
+    // Ajouter la nouvelle alerte à la liste (optimistic update)
+    setAlerts(prev => [newAlert, ...prev]);
+    
+    // Ajouter une notification
+    const newNotification: Notification = {
+      id: `notif-${Date.now()}`,
+      type: 'alert',
+      title: 'Alerte créée',
+      message: `Votre alerte "${alertData.name}" a été créée avec succès`,
+      time: 'Maintenant',
+      isRead: false,
+      alertName: alertData.name
     };
     
-    return (
-      <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusStyles[status as keyof typeof statusStyles] || 'bg-gray-100 text-gray-800'}`}>
-        {status}
-      </span>
+    setNotifications(prev => [newNotification, ...prev]);
+    
+    // Animation d'apparition (simulée avec une classe CSS)
+    setTimeout(() => {
+      const newCard = document.querySelector(`[data-alert-id="${newId}"]`);
+      if (newCard) {
+        newCard.classList.add('animate-pulse-green');
+        setTimeout(() => {
+          newCard.classList.remove('animate-pulse-green');
+        }, 2000);
+      }
+    }, 100);
+  };
+
+  const handleEditAlert = (alert: Alert) => {
+    // TODO: Implémenter l'édition d'alerte
+    console.log('Édition de l\'alerte:', alert);
+  };
+
+  const handleToggleStatus = (alertId: string) => {
+    setAlerts(prev => 
+      prev.map(alert => 
+        alert.id === alertId 
+          ? { 
+              ...alert, 
+              status: alert.status === 'active' ? 'paused' : 'active',
+              lastNotification: 'Maintenant'
+            }
+          : alert
+      )
     );
   };
 
-  const handleCreateAlert = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Nouvelle alerte créée:', newAlert);
-    setShowModal(false);
-    setNewAlert({
-      name: '',
-      category: '',
-      maxPrice: '',
-      minStock: '',
-      maxDistance: 50,
-      frequency: 'immediate'
-    });
+  const handleDeleteAlert = (alertId: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette alerte ?')) {
+      setAlerts(prev => prev.filter(alert => alert.id !== alertId));
+    }
   };
+
+  const handleViewMatches = (alert: Alert) => {
+    // TODO: Implémenter la vue des matches
+    console.log('Voir les matches pour:', alert);
+  };
+
+  const handleMarkAsRead = (notificationId: string) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === notificationId 
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, isRead: true }))
+    );
+  };
+
+  // Filtrage des alertes
+  const filteredAlerts = alerts.filter(alert => {
+    if (statusFilter !== 'all' && alert.status !== statusFilter) return false;
+    if (searchTerm && !alert.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !alert.criteria.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+
+  const activeAlerts = alerts.filter(a => a.status === 'active').length;
+  const totalMatches = alerts.reduce((sum, a) => sum + a.matches, 0);
+  const unreadNotifications = notifications.filter(n => !n.isRead).length;
+
+  if (loading) {
+    return (
+      <DistributorLayout activePage="alerts">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+      </DistributorLayout>
+    );
+  }
 
   return (
     <DistributorLayout activePage="alerts">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mes Alertes Personnalisées</h1>
-        <Button 
-          className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-          onClick={() => setShowModal(true)}
-        >
-          <Plus className="h-4 w-4" />
-          Créer Nouvelle Alerte
-        </Button>
-      </div>
-
-      <div className="grid lg:grid-cols-4 gap-6">
-        {/* Tableau Alertes - 75% */}
-        <div className="lg:col-span-3">
-          <Card className="p-6">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Nom Alerte</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Critères</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Dernière Notification</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Matches Trouvés</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Statut</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {alerts.map((alert, index) => (
-                    <tr key={index} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                      <td className="py-3 px-4 font-medium text-gray-900">{alert.name}</td>
-                      <td className="py-3 px-4 text-gray-600 text-sm">{alert.criteria}</td>
-                      <td className="py-3 px-4 text-gray-600">{alert.lastNotification}</td>
-                      <td className="py-3 px-4">
-                        <span className={`font-bold ${alert.matches > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                          {alert.matches} {alert.matches > 0 ? 'nouveaux' : ''}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">{getStatusBadge(alert.status)}</td>
-                      <td className="py-3 px-4">
-                        <div className="flex items-center gap-2">
-                          <Button variant="ghost" size="sm" className="text-green-600 hover:text-green-800">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="sm" className="text-orange-600 hover:text-orange-800">
-                            {alert.status === 'Active' ? 'Pause' : 'Activer'}
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <div className="flex gap-6">
+        {/* Zone principale des alertes */}
+        <div className="flex-1">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Mes Alertes Personnalisées</h1>
+              <p className="text-gray-600 mt-1">
+                {activeAlerts} alertes actives • {totalMatches} nouveaux matches
+              </p>
             </div>
-          </Card>
-        </div>
-
-        {/* Panel Notifications - 25% */}
-        <div className="lg:col-span-1">
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Notifications Récentes</h3>
-            <div className="space-y-4">
-              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-green-800 mb-1">3 nouveaux poulets</p>
-                <p className="text-xs text-green-600">correspondent à vos critères</p>
-                <Button size="sm" className="mt-2 bg-green-600 hover:bg-green-700 text-white text-xs">
-                  Voir matches
-                </Button>
-              </div>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-blue-800 mb-1">Stock œufs bio</p>
-                <p className="text-xs text-blue-600">disponible chez Ferme Diallo</p>
-                <Button size="sm" className="mt-2 bg-blue-600 hover:bg-blue-700 text-white text-xs">
-                  Contacter
-                </Button>
-              </div>
-              
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <p className="text-sm font-medium text-orange-800 mb-1">Nouveau équipement</p>
-                <p className="text-xs text-orange-600">mangeoire automatique disponible</p>
-                <Button size="sm" className="mt-2 bg-orange-600 hover:bg-orange-700 text-white text-xs">
-                  Voir détails
-                </Button>
-              </div>
-            </div>
-            
-            <Button variant="outline" className="w-full mt-4 text-sm">
-              Voir tous les matches
+            <Button 
+              onClick={() => setShowCreateModal(true)}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+            >
+              <Plus className="w-5 h-5" />
+              Créer Nouvelle Alerte
             </Button>
-          </Card>
+          </div>
+
+          {/* Filtres et recherche */}
+          <div className="flex gap-4 mb-6">
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Rechercher une alerte..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <select
+              className="border border-gray-300 rounded-lg px-3 py-2 bg-white"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">Tous les statuts</option>
+              <option value="active">Actives</option>
+              <option value="paused">En pause</option>
+            </select>
+          </div>
+
+          {/* Grille de cards pour les alertes */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {filteredAlerts.map(alert => (
+              <AlertCard
+                key={alert.id}
+                alert={alert}
+                onEdit={handleEditAlert}
+                onToggleStatus={handleToggleStatus}
+                onDelete={handleDeleteAlert}
+                onViewMatches={handleViewMatches}
+              />
+            ))}
+          </div>
+
+          {filteredAlerts.length === 0 && (
+            <div className="text-center py-12">
+              <Bell className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune alerte trouvée</h3>
+              <p className="text-gray-600 mb-4">
+                {searchTerm || statusFilter !== 'all' 
+                  ? 'Aucune alerte ne correspond à vos critères de recherche.'
+                  : 'Créez votre première alerte pour recevoir des notifications personnalisées.'
+                }
+              </p>
+              {!searchTerm && statusFilter === 'all' && (
+                <Button 
+                  onClick={() => setShowCreateModal(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                >
+                  Créer ma première alerte
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar notifications - plus compact */}
+        <div className="w-80">
+          <NotificationsSidebar
+            notifications={notifications}
+            onMarkAsRead={handleMarkAsRead}
+            onClearAll={handleClearAllNotifications}
+          />
         </div>
       </div>
 
-      {/* Modal Nouvelle Alerte */}
-      {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg max-w-md w-full">
-            <div className="flex items-center justify-between p-6 border-b">
-              <h3 className="text-lg font-semibold">Créer une Nouvelle Alerte</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowModal(false)}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+      {/* Modal de Création */}
+      <CreateAlertModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSubmit={handleCreateAlert}
+      />
 
-            <form onSubmit={handleCreateAlert} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nom de l'alerte
-                </label>
-                <Input
-                  value={newAlert.name}
-                  onChange={(e) => setNewAlert({...newAlert, name: e.target.value})}
-                  placeholder="Ex: Poulets pas chers"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Catégorie produit
-                </label>
-                <select 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
-                  value={newAlert.category}
-                  onChange={(e) => setNewAlert({...newAlert, category: e.target.value})}
-                  required
-                >
-                  <option value="">Sélectionner une catégorie</option>
-                  <option value="volailles">Volailles</option>
-                  <option value="equipements">Équipements</option>
-                  <option value="aliments">Aliments</option>
-                  <option value="soins">Soins</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Prix maximum (FCFA)
-                </label>
-                <Input
-                  type="number"
-                  value={newAlert.maxPrice}
-                  onChange={(e) => setNewAlert({...newAlert, maxPrice: e.target.value})}
-                  placeholder="Ex: 4000"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Stock minimum requis
-                </label>
-                <Input
-                  type="number"
-                  value={newAlert.minStock}
-                  onChange={(e) => setNewAlert({...newAlert, minStock: e.target.value})}
-                  placeholder="Ex: 50"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Distance maximum: {newAlert.maxDistance} km
-                </label>
-                <input
-                  type="range"
-                  min="5"
-                  max="100"
-                  value={newAlert.maxDistance}
-                  onChange={(e) => setNewAlert({...newAlert, maxDistance: parseInt(e.target.value)})}
-                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Fréquence notifications
-                </label>
-                <select 
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 bg-white"
-                  value={newAlert.frequency}
-                  onChange={(e) => setNewAlert({...newAlert, frequency: e.target.value})}
-                  required
-                >
-                  <option value="immediate">Immédiate</option>
-                  <option value="daily">Quotidienne</option>
-                  <option value="weekly">Hebdomadaire</option>
-                </select>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setShowModal(false)}
-                >
-                  Annuler
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-                >
-                  Créer Alerte
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Styles CSS pour les animations */}
+      <style jsx>{`
+        .animate-pulse-green {
+          animation: pulseGreen 2s ease-in-out;
+        }
+        
+        @keyframes pulseGreen {
+          0%, 100% { 
+            box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4);
+          }
+          50% { 
+            box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+          }
+        }
+        
+        .slider::-webkit-slider-thumb {
+          appearance: none;
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #059669;
+          cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+          height: 20px;
+          width: 20px;
+          border-radius: 50%;
+          background: #059669;
+          cursor: pointer;
+          border: none;
+        }
+      `}</style>
     </DistributorLayout>
   );
 }
