@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import InvoiceModal from '@/components/InvoiceModal';
-import DashboardLayout from '@/components/DashboardLayout';
 import { authService, User as UserType } from '@/lib/auth';
 import { 
   BarChart3, 
@@ -110,11 +109,12 @@ export default function DashboardPage() {
   const currentOrders = receivedOrders.slice(startIndex, endIndex);
 
   return (
-    <DashboardLayout activePage="dashboard" currentUser={currentUser}>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Bienvenue sur votre tableau de bord</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Bienvenue sur votre tableau de bord</p>
+        </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -236,11 +236,21 @@ export default function DashboardPage() {
       {/* Invoice Modal */}
       {showInvoice && selectedOrder && (
         <InvoiceModal
-          order={selectedOrder}
+          orderId={selectedOrder.id}
+          orderData={{
+            id: selectedOrder.id,
+            orderTime: new Date().toISOString(),
+            method: "Orange Money",
+            status: selectedOrder.status,
+            shipping: "Livraison standard",
+            shippingCost: "2000 FCFA",
+            total: selectedOrder.totalPrice
+          }}
           isOpen={showInvoice}
           onClose={() => setShowInvoice(false)}
         />
       )}
-    </DashboardLayout>
+      </div>
+    </div>
   );
 }

@@ -1,8 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import DistributorLayout from '@/components/DistributorLayout';
-import PaymentButton from '@/components/PaymentButton';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import DistributorLayout from '@/components/layouts/DistributorLayout';
+import { 
+  Eye,
+  CheckCircle,
+  XCircle,
+  Clock
+} from 'lucide-react';
 import { authService } from '@/lib/auth';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -48,7 +55,11 @@ export default function DistributorPropositionsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  
+  // Le layout utilisera les données par défaut du distributeur
+  const currentUser = {
+    id: '303f243a-9129-4e94-8a6f-f8e247f0d15e'
+  };
   const [counts, setCounts] = useState<PropositionCounts>({
     all: 0,
     pending: 0,
@@ -59,41 +70,8 @@ export default function DistributorPropositionsPage() {
   const [highlightedProposition, setHighlightedProposition] = useState<string | null>(null);
 
   useEffect(() => {
-    const user = authService.getCurrentUser();
-    console.log('🔍 Utilisateur connecté:', user);
-    
-    // Si pas d'utilisateur connecté, simuler un distributeur pour les tests
-    if (!user) {
-      const mockDistributor = {
-        id: '303f243a-9129-4e94-8a6f-f8e247f0d15e',
-        user_type: 'distributor',
-        business_name: 'Djoloff_Distribution',
-        is_verified: true
-      };
-      console.log('🔍 Utilisation du distributeur de test:', mockDistributor);
-      setCurrentUser(mockDistributor);
-    } else {
-      setCurrentUser(user);
-    }
-    
-    // Vérifier s'il y a un paramètre highlight dans l'URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const highlightId = urlParams.get('highlight');
-    if (highlightId) {
-      setHighlightedProposition(highlightId);
-      // Nettoyer l'URL après 3 secondes
-      setTimeout(() => {
-        setHighlightedProposition(null);
-        window.history.replaceState({}, '', window.location.pathname);
-      }, 3000);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (currentUser || !currentUser) { // Toujours charger pour les tests
-      fetchPropositions();
-    }
-  }, [filter, currentUser]);
+    fetchPropositions();
+  }, [filter]);
 
   const fetchPropositions = async () => {
     // Utiliser l'ID de l'utilisateur connecté ou un ID de test
@@ -161,13 +139,9 @@ export default function DistributorPropositionsPage() {
       case 'accepted':
         return (
           <div className="flex gap-2 mt-4">
-            <PaymentButton 
-              proposition={proposition} 
-              onPaymentSuccess={() => {
-                // Rafraîchir la liste des propositions après paiement
-                fetchPropositions();
-              }}
-            />
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
+              Procéder au paiement
+            </Button>
             <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
               📞 Contacter Producteur
             </button>
@@ -325,12 +299,9 @@ export default function DistributorPropositionsPage() {
 
   if (loading) {
     return (
-      <DistributorLayout currentUser={currentUser} activePage="sent-propositions">
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold text-gray-900">Mes Propositions</h1>
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
+      <DistributorLayout activePage="propositions">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </DistributorLayout>
     );
@@ -338,85 +309,72 @@ export default function DistributorPropositionsPage() {
 
   if (error) {
     return (
-      <DistributorLayout currentUser={currentUser} activePage="sent-propositions">
-        <div className="space-y-6">
-          <h1 className="text-2xl font-bold text-gray-900">Mes Propositions</h1>
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-            <p className="text-red-800">{error}</p>
-            <button 
-              onClick={fetchPropositions}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Réessayer
-            </button>
-          </div>
+      <DistributorLayout activePage="propositions">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-red-800">{error}</p>
+          <button 
+            onClick={fetchPropositions}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Réessayer
+          </button>
         </div>
       </DistributorLayout>
     );
   }
 
-  // Forcer l'affichage du menu distributeur pour cette page
-  const forceDistributorUser = currentUser || {
-    id: '303f243a-9129-4e94-8a6f-f8e247f0d15e',
-    user_type: 'distributor',
-    business_name: 'Djoloff_Distribution',
-    is_verified: true
-  };
-
   return (
-    <DistributorLayout currentUser={currentUser} activePage="sent-propositions">
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mes Propositions</h1>
-            <p className="text-gray-600 mt-1">
-              Gérez vos propositions envoyées aux producteurs
-            </p>
-          </div>
+    <DistributorLayout activePage="propositions">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Mes Propositions</h1>
+          <p className="text-gray-600 mt-1">
+            Gérez vos propositions envoyées aux producteurs
+          </p>
         </div>
+      </div>
 
-        {/* Filtres */}
-        <div className="flex flex-wrap gap-2">
-          {Object.entries(counts).map(([filterType, count]) => (
-            <button
-              key={filterType}
-              onClick={() => setFilter(filterType)}
-              className={`px-4 py-2 rounded-lg transition-colors ${
-                filter === filterType
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              {getFilterBadge(filterType, count)}
-            </button>
+      {/* Filtres */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {Object.entries(counts).map(([filterType, count]) => (
+          <button
+            key={filterType}
+            onClick={() => setFilter(filterType)}
+            className={`px-4 py-2 rounded-lg transition-colors ${
+              filter === filterType
+                ? 'bg-blue-600 text-white'
+                : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'
+            }`}
+          >
+            {getFilterBadge(filterType, count)}
+          </button>
+        ))}
+      </div>
+
+      {/* Liste des propositions */}
+      {propositions.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-6xl mb-4">📋</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            Aucune proposition {filter !== 'all' ? `(${filter})` : ''}
+          </h3>
+          <p className="text-gray-600">
+            {filter === 'all' 
+              ? 'Vous n\'avez pas encore envoyé de propositions aux producteurs.'
+              : `Aucune proposition avec le statut "${filter}".`
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {propositions.map((proposition) => (
+            <div key={proposition.id}>
+              {renderPropositionContent(proposition)}
+            </div>
           ))}
         </div>
-
-        {/* Liste des propositions */}
-        {propositions.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Aucune proposition {filter !== 'all' ? `(${filter})` : ''}
-            </h3>
-            <p className="text-gray-600">
-              {filter === 'all' 
-                ? 'Vous n\'avez pas encore envoyé de propositions aux producteurs.'
-                : `Aucune proposition avec le statut "${filter}".`
-              }
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {propositions.map((proposition) => (
-              <div key={proposition.id}>
-                {renderPropositionContent(proposition)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
     </DistributorLayout>
   );
 }
