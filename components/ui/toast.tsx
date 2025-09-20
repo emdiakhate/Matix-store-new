@@ -101,8 +101,8 @@ export default function Toast({
           <button
             onClick={handleClose}
             className={`inline-flex ${styles.icon} hover:opacity-75 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500`}
-          >
-            <X className="h-4 w-4" />
+  >
+    <X className="h-4 w-4" />
           </button>
         </div>
       </div>

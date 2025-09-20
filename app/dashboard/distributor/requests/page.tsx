@@ -383,9 +383,9 @@ export default function RequestsPage() {
           onClick={() => setShowCreateModal(true)}
           className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
         >
-          <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
           Nouvelle Demande
-        </Button>
+          </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -419,7 +419,7 @@ export default function RequestsPage() {
           { id: 'closed', label: 'Fermées' },
           { id: 'expired', label: 'Expirées' }
         ].map((tab) => (
-          <button
+        <button 
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -429,21 +429,21 @@ export default function RequestsPage() {
             }`}
           >
             {tab.label}
-          </button>
+        </button>
         ))}
       </div>
 
       {/* Search and Filter */}
       <div className="flex gap-4 mb-6">
         <div className="flex-1 relative">
-          <Input
-            placeholder="Rechercher une demande..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+            <Input
+              placeholder="Rechercher une demande..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
         </div>
-        <select 
+        <select
           className="border border-gray-300 rounded-lg px-3 py-2 bg-white"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -461,18 +461,18 @@ export default function RequestsPage() {
         {filteredRequests.map((request) => (
           <div key={request.id} className="bg-white p-6 rounded-lg border hover:shadow-md transition-shadow">
             <div className="flex justify-between items-start mb-4">
-              <div className="flex-1">
+                <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
                   <h3 className="text-lg font-semibold text-gray-900">{request.title}</h3>
-                  {getStatusBadge(request.status)}
-                </div>
-                
+                    {getStatusBadge(request.status)}
+                  </div>
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-gray-600 mb-3">
                   <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4" />
-                    <span>{request.quantity} {request.unit}</span>
+                        <Package className="h-4 w-4" />
+                        <span>{request.quantity} {request.unit}</span>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
                     <span>Créée le {formatDate(request.created_at)}</span>
@@ -493,7 +493,7 @@ export default function RequestsPage() {
                     <span>Échéance: {formatDate(request.deadline)}</span>
                   </div>
                 </div>
-                
+
                 <p className="text-gray-600 mb-3">{request.description}</p>
                 
                 <div className="flex flex-wrap gap-2 mb-3">
@@ -525,29 +525,29 @@ export default function RequestsPage() {
                   size="sm"
                   className="flex items-center gap-2"
                 >
-                  <Eye className="h-4 w-4" />
-                </Button>
+                      <Eye className="h-4 w-4" />
+                    </Button>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm"
+                  <Button
+                    variant="outline"
+                    size="sm"
                   className="text-red-600 border-red-600 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-        
+          ))}
+          
         {filteredRequests.length === 0 && (
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune demande trouvée</h3>
             <p className="text-gray-600">Aucune demande ne correspond à vos critères de recherche.</p>
-          </div>
-        )}
-      </div>
+            </div>
+          )}
+        </div>
 
 
       {/* Modal des Offres */}

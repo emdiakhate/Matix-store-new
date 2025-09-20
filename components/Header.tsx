@@ -75,7 +75,8 @@ export default function Header() {
       return [
         { href: '/categories', label: 'Catégories' },
         { href: '/marques', label: 'Marques Distributeurs' },
-        { href: '/offres', label: 'Offres', isSpecial: true }
+        { href: '/offres', label: 'Offres', isSpecial: true },
+        { href: '/annonces', label: 'Annonces', isSpecial: true }
       ];
     }
 

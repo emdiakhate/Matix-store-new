@@ -60,7 +60,7 @@ export default function AlertsPage() {
         distance: 30,
         frequency: 'immediate',
         status: 'active',
-        matches: 3,
+      matches: 3,
         lastNotification: 'Il y a 2h',
         created_at: '2025-09-15'
       },
@@ -73,7 +73,7 @@ export default function AlertsPage() {
         distance: 25,
         frequency: 'daily',
         status: 'active',
-        matches: 1,
+      matches: 1,
         lastNotification: 'Hier',
         created_at: '2025-09-14'
       },
@@ -86,7 +86,7 @@ export default function AlertsPage() {
         distance: 50,
         frequency: 'weekly',
         status: 'paused',
-        matches: 0,
+      matches: 0,
         lastNotification: 'Il y a 5j',
         created_at: '2025-09-10'
       },
@@ -256,7 +256,7 @@ export default function AlertsPage() {
   const unreadNotifications = notifications.filter(n => !n.isRead).length;
 
   if (loading) {
-    return (
+  return (
       <DistributorLayout activePage="alerts">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
@@ -272,33 +272,33 @@ export default function AlertsPage() {
         <div className="flex-1">
           {/* Header */}
           <div className="flex justify-between items-center mb-6">
-            <div>
+              <div>
               <h1 className="text-2xl font-bold text-gray-900">Mes Alertes Personnalisées</h1>
               <p className="text-gray-600 mt-1">
                 {activeAlerts} alertes actives • {totalMatches} nouveaux matches
               </p>
             </div>
-            <Button 
+              <Button 
               onClick={() => setShowCreateModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
-            >
+                className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+              >
               <Plus className="w-5 h-5" />
-              Créer Nouvelle Alerte
-            </Button>
-          </div>
+                Créer Nouvelle Alerte
+              </Button>
+            </div>
 
           {/* Filtres et recherche */}
           <div className="flex gap-4 mb-6">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <Input
+                <Input
                 placeholder="Rechercher une alerte..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
-              />
-            </div>
-            <select
+                />
+              </div>
+                <select 
               className="border border-gray-300 rounded-lg px-3 py-2 bg-white"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -306,8 +306,8 @@ export default function AlertsPage() {
               <option value="all">Tous les statuts</option>
               <option value="active">Actives</option>
               <option value="paused">En pause</option>
-            </select>
-          </div>
+                </select>
+              </div>
 
           {/* Grille de cards pour les alertes */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -321,7 +321,7 @@ export default function AlertsPage() {
                 onViewMatches={handleViewMatches}
               />
             ))}
-          </div>
+              </div>
 
           {filteredAlerts.length === 0 && (
             <div className="text-center py-12">
@@ -334,7 +334,7 @@ export default function AlertsPage() {
                 }
               </p>
               {!searchTerm && statusFilter === 'all' && (
-                <Button 
+                <Button
                   onClick={() => setShowCreateModal(true)}
                   className="bg-green-600 hover:bg-green-700 text-white"
                 >
@@ -343,7 +343,7 @@ export default function AlertsPage() {
               )}
             </div>
           )}
-        </div>
+      </div>
 
         {/* Sidebar notifications - plus compact */}
         <div className="w-80">

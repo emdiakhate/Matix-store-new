@@ -4,52 +4,50 @@ import Link from 'next/link';
 import { Card } from '@/components/ui/card';
 import {
   BarChart3,
-  Search,
-  Bell,
-  FileText,
-  Store,
-  Users,
+  Package,
+  ShoppingCart,
   User as UserIcon,
   LogOut,
+  MapPin,
   Star,
-  ShoppingBag
+  Zap
 } from 'lucide-react';
 
-interface DistributorLayoutProps {
+interface ProducerLayoutProps {
   children: React.ReactNode;
   activePage?: string;
   currentUser?: any;
 }
 
-// Données utilisateur par défaut pour le distributeur
-const defaultDistributorUser = {
-  name: "Distributeur",
-  email: "iantrepreneur221@gmail.com",
-  avatar: null // Pas d'avatar par défaut, on utilisera l'icône
+// Données utilisateur par défaut pour le producteur
+const defaultProducerUser = {
+  name: "Amadou Diallo",
+  email: "amadou@gmail.com",
+  avatar: "https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=100"
 };
 
-export default function DistributorLayout({ 
+export default function ProducerLayout({ 
   children, 
   activePage = 'dashboard',
   currentUser 
-}: DistributorLayoutProps) {
+}: ProducerLayoutProps) {
   // Utiliser les données par défaut si currentUser n'est pas fourni
-  const user = currentUser || defaultDistributorUser;
+  const user = currentUser || defaultProducerUser;
+  
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="h-4 w-4" /> },
-    { id: 'search', label: 'Rechercher Producteurs', icon: <Search className="h-4 w-4" /> },
-    { id: 'alerts', label: 'Mes Alertes', icon: <Bell className="h-4 w-4" /> },
-    { id: 'requests', label: 'Mes Demandes', icon: <Users className="h-4 w-4" /> },
-    { id: 'propositions', label: 'Mes Propositions', icon: <FileText className="h-4 w-4" /> },
-    { id: 'achats', label: 'Mes Achats', icon: <ShoppingBag className="h-4 w-4" /> },
-    { id: 'my-reviews', label: 'Mes Avis', icon: <Star className="h-4 w-4" /> },
+    { id: 'products', label: 'Mes Produits', icon: <Package className="h-4 w-4" /> },
+    { id: 'opportunities', label: 'Mes Opportunités', icon: <Zap className="h-4 w-4" /> },
+    { id: 'orders', label: 'Commandes Reçues', icon: <ShoppingCart className="h-4 w-4" /> },
+    { id: 'stats', label: 'Statistiques', icon: <BarChart3 className="h-4 w-4" /> },
+    { id: 'geolocation', label: 'Géolocalisation', icon: <MapPin className="h-4 w-4" /> },
     { id: 'profile', label: 'Mon Profil', icon: <UserIcon className="h-4 w-4" /> },
     { id: 'logout', label: 'Déconnexion', icon: <LogOut className="h-4 w-4" /> }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header identique */}
       <div className="bg-gray-100 text-gray-700 text-sm py-2">
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
@@ -71,18 +69,18 @@ export default function DistributorLayout({
         </div>
       </div>
 
-      <div className="bg-green-800 text-white py-4">
+      <div className="bg-matix-green-dark text-white py-4">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center">
-              <div className="bg-white text-green-800 p-2 rounded-lg mr-3">
+              <div className="bg-white text-matix-green-dark p-2 rounded-lg mr-3">
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
                 </svg>
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-yellow-400">MATIX</h1>
-                <p className="text-xs text-yellow-400 opacity-90">M A R T</p>
+                <h1 className="text-2xl font-bold text-matix-yellow">MATIX</h1>
+                <p className="text-xs text-matix-yellow opacity-90">M A R T</p>
               </div>
             </Link>
           </div>
@@ -92,11 +90,11 @@ export default function DistributorLayout({
       <div className="bg-white border-b border-gray-200 py-3">
         <div className="container mx-auto px-4">
           <nav className="flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-green-600 font-medium">Accueil</Link>
-            <Link href="/categories" className="text-gray-700 hover:text-green-600 font-medium">Catégories</Link>
-            <Link href="#" className="text-gray-700 hover:text-green-600 font-medium">À Propos</Link>
-            <Link href="#" className="text-gray-700 hover:text-green-600 font-medium">Contact</Link>
-            <Link href="/offres" className="text-yellow-500 font-medium">Offres</Link>
+            <Link href="/" className="text-gray-700 hover:text-matix-green-medium font-medium">Accueil</Link>
+            <Link href="/categories" className="text-gray-700 hover:text-matix-green-medium font-medium">Catégories</Link>
+            <Link href="#" className="text-gray-700 hover:text-matix-green-medium font-medium">À Propos</Link>
+            <Link href="#" className="text-gray-700 hover:text-matix-green-medium font-medium">Contact</Link>
+            <Link href="/offres" className="text-matix-yellow font-medium">Offres</Link>
           </nav>
         </div>
       </div>
@@ -109,20 +107,16 @@ export default function DistributorLayout({
             <Card className="p-6">
               {/* Profile Section */}
               <div className="text-center mb-6">
-                <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3 bg-gray-200 flex items-center justify-center">
-                  {user?.avatar ? (
-                    <img 
-                      src={user.avatar} 
-                      alt={user.name || 'Distributeur'}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <UserIcon className="h-8 w-8 text-gray-500" />
-                  )}
+                <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3">
+                  <img 
+                    src={user.avatar} 
+                    alt={user.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <h3 className="font-semibold text-gray-900">{user.name}</h3>
                 <p className="text-sm text-gray-500">{user.email}</p>
-                <p className="text-xs text-blue-600">Distributeur</p>
+                <p className="text-xs text-green-600">Producteur</p>
               </div>
 
               {/* Menu Navigation */}
@@ -130,11 +124,11 @@ export default function DistributorLayout({
                 {menuItems.map((item) => (
                   <Link
                     key={item.id}
-                    href={item.id === 'dashboard' ? '/dashboard/distributor' : `/dashboard/distributor/${item.id}`}
+                    href={item.id === 'dashboard' ? '/dashboard' : item.id === 'geolocation' ? '/dashboard/geolocation' : `/dashboard/${item.id}`}
                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                       activePage === item.id 
-                        ? 'bg-green-100 text-green-700 font-medium' 
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-green-600'
+                        ? 'bg-matix-green-pale text-matix-green-dark font-medium' 
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-matix-green-medium'
                     }`}
                   >
                     {item.icon}
@@ -145,7 +139,7 @@ export default function DistributorLayout({
             </Card>
           </div>
 
-          {/* Main Content */}
+          {/* Main Content Area */}
           <div className="lg:col-span-3">
             {children}
           </div>

@@ -4,10 +4,16 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
 import InvoiceModal from '@/components/InvoiceModal';
 import { authService, User as UserType } from '@/lib/auth';
 import { 
+  BarChart3, 
+  Package, 
+  Star, 
+  User as UserIcon, 
+  Edit, 
+  Lock, 
+  LogOut,
   ShoppingCart,
   Clock,
   Settings,
@@ -103,11 +109,12 @@ export default function DashboardPage() {
   const currentOrders = receivedOrders.slice(startIndex, endIndex);
 
   return (
-    <ProducerLayout activePage="dashboard">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-600">Bienvenue sur votre tableau de bord</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+          <p className="text-gray-600">Bienvenue sur votre tableau de bord</p>
+        </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -194,9 +201,26 @@ export default function DashboardPage() {
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} sur {totalPages}
-            </span>
+            
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => {
+              if (pageNum === 1 || pageNum === totalPages || (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)) {
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    className={currentPage === pageNum ? "bg-matix-green-medium text-white" : ""}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              } else if (pageNum === currentPage - 2 || pageNum === currentPage + 2) {
+                return <span key={pageNum} className="px-2">...</span>;
+              }
+              return null;
+            })}
+            
             <Button
               variant="outline"
               size="sm"
@@ -212,12 +236,21 @@ export default function DashboardPage() {
       {/* Invoice Modal */}
       {showInvoice && selectedOrder && (
         <InvoiceModal
+          orderId={selectedOrder.id}
+          orderData={{
+            id: selectedOrder.id,
+            orderTime: new Date().toISOString(),
+            method: "Orange Money",
+            status: selectedOrder.status,
+            shipping: "Livraison standard",
+            shippingCost: "2000 FCFA",
+            total: selectedOrder.totalPrice
+          }}
           isOpen={showInvoice}
           onClose={() => setShowInvoice(false)}
-          orderId={selectedOrder.id}
-          order={selectedOrder}
         />
       )}
-    </ProducerLayout>
+      </div>
+    </div>
   );
 }

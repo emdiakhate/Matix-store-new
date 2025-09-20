@@ -185,3 +185,59 @@ export interface Database {
     }
   }
 }
+
+// Types pour les reviews de produits
+export interface ProductReview {
+  id: string;
+  product_id: string;
+  distributor_id: string;
+  rating: number;
+  comment?: string;
+  created_at: string;
+  distributor_name?: string;
+}
+
+export interface ProductReviewStats {
+  average_rating: number;
+  total_reviews: number;
+  rating_distribution: {
+    5: number;
+    4: number;
+    3: number;
+    2: number;
+    1: number;
+  };
+}
+
+// Types pour la géolocalisation sénégalaise
+export interface SenegalLocation {
+  id: string;
+  region: string;
+  department: string;
+  commune: string;
+  village_quartier?: string;
+  latitude: number;
+  longitude: number;
+}
+
+export interface UserLocation {
+  region: string;
+  department: string;
+  commune: string;
+  village_quartier?: string;
+  details?: string;
+  formatted_address: string;
+  coordinates: [number, number]; // [latitude, longitude]
+  accuracy?: number; // en mètres pour GPS
+  method: 'gps' | 'map_click' | 'manual_select';
+}
+
+export interface DeliverySettings {
+  max_radius_km: number;
+  cost_per_km: number;
+  available_hours: {
+    start: string;
+    end: string;
+  };
+  working_days: string[]; // ['monday', 'tuesday', ...]
+}
