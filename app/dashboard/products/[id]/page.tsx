@@ -105,72 +105,72 @@ export default function ProductDetailPage() {
   // Données mockées des avis
   const mockReviews: ProductReview[] = [
     {
-      id: 1,
-      product_id: 1,
-      distributor_id: 1,
+      id: "1",
+      product_id: "1",
+      distributor_id: "1",
       rating: 5,
       comment: "Excellent produit ! Les poulets sont vraiment de qualité supérieure. Je recommande vivement.",
       created_at: "2024-01-15T10:30:00Z",
       distributor_name: "Fatou Sall"
     },
     {
-      id: 2,
-      product_id: 1,
-      distributor_id: 2,
+      id: "2",
+      product_id: "1",
+      distributor_id: "2",
       rating: 4,
       comment: "Très bon rapport qualité-prix. Les poulets sont frais et bien conditionnés.",
       created_at: "2024-01-12T14:20:00Z",
       distributor_name: "Ibrahima Ba"
     },
     {
-      id: 3,
-      product_id: 1,
-      distributor_id: 3,
+      id: "3",
+      product_id: "1",
+      distributor_id: "3",
       rating: 5,
       comment: "Service impeccable et produits de qualité. Je suis très satisfait de mon achat.",
       created_at: "2024-01-10T09:15:00Z",
       distributor_name: "Aïcha Ndiaye"
     },
     {
-      id: 4,
-      product_id: 1,
-      distributor_id: 4,
+      id: "4",
+      product_id: "1",
+      distributor_id: "4",
       rating: 3,
       comment: "Bon produit mais la livraison a pris plus de temps que prévu.",
       created_at: "2024-01-08T16:45:00Z",
       distributor_name: "Moussa Fall"
     },
     {
-      id: 5,
-      product_id: 1,
-      distributor_id: 5,
+      id: "5",
+      product_id: "1",
+      distributor_id: "5",
       rating: 4,
       comment: "Qualité correcte, prix raisonnable. Je recommande ce producteur.",
       created_at: "2024-01-05T11:30:00Z",
       distributor_name: "Khadija Diop"
     },
     {
-      id: 6,
-      product_id: 1,
-      distributor_id: 6,
+      id: "6",
+      product_id: "1",
+      distributor_id: "6",
       rating: 5,
       comment: "Parfait ! Les poulets sont exactement comme décrits. Très professionnel.",
       created_at: "2024-01-03T13:20:00Z",
       distributor_name: "Omar Sy"
     },
     {
-      id: 7,
-      product_id: 1,
-      distributor_id: 7,
+      id: "7",
+      product_id: "1",
+      distributor_id: "7",
       rating: 4,
       comment: "Bon produit, bon service. Je reviendrai certainement.",
       created_at: "2024-01-01T08:10:00Z",
       distributor_name: "Mariama Ba"
     },
     {
-      id: 8,
-      product_id: 1,
-      distributor_id: 8,
+      id: "8",
+      product_id: "1",
+      distributor_id: "8",
       rating: 5,
       comment: "Excellent ! Qualité premium comme annoncé. Je suis très satisfait.",
       created_at: "2023-12-28T15:30:00Z",
@@ -259,37 +259,41 @@ export default function ProductDetailPage() {
                 />
               </div>
               <div>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-900">{product.name}</h2>
-                  {getStatusBadge(product.status)}
-                </div>
-                
-                <div className="space-y-3 mb-6">
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Catégorie:</span>
-                    <span className="ml-2 text-gray-900">{product.category}</span>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-semibold text-gray-900">{product.name}</h2>
+                    {getStatusBadge(product.status)}
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Prix:</span>
-                    <span className="ml-2 text-xl font-bold text-matix-green-medium">{product.price} FCFA</span>
+                  
+                  <div className="space-y-3 mb-6">
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Catégorie:</span>
+                      <span className="ml-2 text-gray-900">{product.category}</span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Prix:</span>
+                      <span className="ml-2 text-xl font-bold text-matix-green-medium">
+                        {product.price} FCFA
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-600">Stock:</span>
+                      <span className="ml-2 text-gray-900">{product.stock} unités</span>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-600 mr-2">Note:</span>
+                      <StarRating rating={product.rating} />
+                      <span className="ml-2 text-sm text-gray-600">
+                        ({product.reviewCount} avis)
+                      </span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-sm font-medium text-gray-600">Stock:</span>
-                    <span className="ml-2 text-gray-900">{product.stock} unités</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-600 mr-2">Note:</span>
-                    <StarRating rating={product.rating} />
-                    <span className="ml-2 text-sm text-gray-600">({product.reviewCount} avis)</span>
-                  </div>
-                </div>
 
-                {product.description && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-600 mb-2">Description:</h3>
-                    <p className="text-gray-700">{product.description}</p>
-                  </div>
-                )}
+                  {product.description && (
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-600 mb-2">Description:</h3>
+                      <p className="text-gray-700">{product.description}</p>
+                    </div>
+                  )}
               </div>
             </div>
           </Card>
@@ -309,7 +313,7 @@ export default function ProductDetailPage() {
       <Card className="p-6 mt-6">
         <h2 className="text-xl font-semibold text-gray-900 mb-6">Avis clients</h2>
         
-        {currentReviews.length > 0 ? (
+          {currentReviews.length > 0 ? (
           <div className="space-y-4">
             {currentReviews.map((review) => (
               <ReviewCard

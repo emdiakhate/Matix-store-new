@@ -378,13 +378,13 @@ export default function RequestsPage() {
     <DistributorLayout activePage="requests">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Gestion des Demandes</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Gestion des Annonces</h1>
         <Button 
           onClick={() => setShowCreateModal(true)}
           className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
         >
             <Plus className="h-4 w-4" />
-          Nouvelle Demande
+          Nouvelle Annonce
           </Button>
       </div>
 

@@ -19,6 +19,22 @@ export interface User {
   coordinates?: { lat: number; lng: number }
   radius_km?: number
   is_verified: boolean
+  email?: string
+  phone?: string
+  full_name?: string
+  avatar_url?: string
+  email_confirmed?: boolean
+  phone_confirmed?: boolean
+  last_sign_in_at?: string
+  rating?: number
+  response_time_hours?: number
+  // Champs de géolocalisation de la ferme
+  farm_latitude?: number
+  farm_longitude?: number
+  location_accuracy?: number
+  farm_address?: string
+  farm_name?: string
+  region?: string
   created_at: string
   updated_at: string
 }
@@ -26,12 +42,9 @@ export interface User {
 export interface Product {
   id: string
   producer_id: string
-  title: string
-  title_fr?: string
-  title_wo?: string
+  category_id?: string
+  name: string
   description: string
-  description_fr?: string
-  description_wo?: string
   price: number
   sale_price?: number
   cost_price?: number
@@ -39,15 +52,25 @@ export interface Product {
   stock_quantity: number
   available_quantity: number
   unit_type: UnitType
-  harvest_date?: string
-  expiry_date?: string
-  is_organic: boolean
-  is_local_breed: boolean
   age_weeks?: number
   vaccination_status?: string
   distributor_price?: number
   retail_price?: number
+  images?: string[]
   location_coordinates?: { lat: number; lng: number }
+  specific_type?: string
+  breed_race?: string
+  average_weight_kg?: number
+  is_vaccinated?: boolean
+  vaccination_details?: string
+  availability_date?: string
+  sale_end_date?: string
+  minimum_order_quantity?: number
+  farm_address?: string
+  is_organic?: boolean
+  is_local_breed?: boolean
+  harvest_date?: string
+  expiry_date?: string
   created_at: string
   updated_at: string
 }
@@ -240,4 +263,124 @@ export interface DeliverySettings {
     end: string;
   };
   working_days: string[]; // ['monday', 'tuesday', ...]
+}
+
+// Types pour les nouvelles tables existantes
+export interface Proposition {
+  id: string;
+  distributor_id: string;
+  producer_id: string;
+  product_id: string;
+  proposed_price: number;
+  quantity: number;
+  message?: string;
+  status: 'pending' | 'accepted' | 'rejected' | 'expired';
+  expires_at: string;
+  created_at: string;
+  updated_at: string;
+  responded_at?: string;
+  response_message?: string;
+}
+
+export interface DistributorRequest {
+  id: string;
+  distributor_id: string;
+  title: string;
+  category_id?: string;
+  quantity: number;
+  weight?: number;
+  unit: string;
+  deadline: string;
+  description?: string;
+  status: 'active' | 'closed' | 'expired';
+  budget_max?: number;
+  delivery_location?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ProducerOffer {
+  id: string;
+  request_id: string;
+  producer_id: string;
+  price_per_unit: number;
+  total_price: number;
+  available_quantity: number;
+  delivery_time_days?: number;
+  message?: string;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DistributorAlert {
+  id: string;
+  user_id: string;
+  name: string;
+  category_id?: string;
+  max_price?: number;
+  min_stock?: number;
+  max_distance_km: number;
+  notification_frequency: 'immediate' | 'daily' | 'weekly';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AlertMatch {
+  id: string;
+  alert_id: string;
+  product_id: string;
+  user_id: string;
+  is_notified: boolean;
+  created_at: string;
+}
+
+export interface ProducerFollower {
+  id: string;
+  distributor_id: string;
+  producer_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Notification {
+  id: string;
+  user_id: string;
+  type: string;
+  title: string;
+  message: string;
+  data?: any;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ChatRoom {
+  id: string;
+  distributor_id: string;
+  producer_id: string;
+  room_name: string;
+  last_message_at: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  room_id: string;
+  sender_id: string;
+  message: string;
+  message_type: 'text' | 'image' | 'file' | 'product_link';
+  metadata?: any;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface ChatParticipant {
+  id: string;
+  room_id: string;
+  user_id: string;
+  is_online: boolean;
+  last_seen: string;
+  created_at: string;
 }

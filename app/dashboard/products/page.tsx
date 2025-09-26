@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AddProductModal from '@/components/AddProductModal';
 import { 
   Plus,
   Eye,
@@ -14,8 +15,8 @@ import {
 import StarRating from '@/components/ui/StarRating';
 
 export default function MyProductsPage() {
-
-  const products = [
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [products, setProducts] = useState([
     {
       id: 1,
       name: "Poulet Fermier Bio Premium",
@@ -71,7 +72,24 @@ export default function MyProductsPage() {
       rating: 4.7,
       reviewCount: 9
     }
-  ];
+  ]);
+
+  const handleAddProduct = (newProduct: any) => {
+    const product = {
+      id: products.length + 1,
+      name: newProduct.name,
+      price: newProduct.price,
+      stock: parseInt(newProduct.stock),
+      status: "Actif",
+      image: newProduct.images[0] || "https://images.pexels.com/photos/1556909/pexels-photo-1556909.jpeg?auto=compress&cs=tinysrgb&w=120",
+      category: newProduct.category,
+      rating: 0,
+      reviewCount: 0
+    };
+    
+    setProducts(prev => [...prev, product]);
+    setIsAddModalOpen(false);
+  };
 
   const getStatusBadge = (status: string) => {
     const statusStyles = {
@@ -87,20 +105,24 @@ export default function MyProductsPage() {
     );
   };
 
+
   return (
     <ProducerLayout activePage="products">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Mes Produits</h1>
-        <Button className="bg-matix-green-medium hover:bg-matix-green-dark text-white flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Ajouter Produit
-        </Button>
-      </div>
+            <div className="flex items-center justify-between mb-6">
+              <h1 className="text-2xl font-bold text-gray-900">Mes Produits</h1>
+                <Button 
+                  onClick={() => setIsAddModalOpen(true)}
+                  className="bg-matix-green-medium hover:bg-matix-green-dark text-white flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Ajouter Produit
+                </Button>
+            </div>
 
-      {/* Products Table */}
+            {/* Products Table */}
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+              <div className="overflow-x-auto">
+                <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Photo</th>
@@ -111,8 +133,8 @@ export default function MyProductsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rating</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
+                    </tr>
+                  </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {products.map((product) => (
                 <tr key={product.id} className="hover:bg-gray-50">
@@ -163,9 +185,16 @@ export default function MyProductsPage() {
                 </tr>
               ))}
             </tbody>
-          </table>
-        </div>
-      </Card>
+                </table>
+              </div>
+            </Card>
+
+            {/* Modal d'ajout de produit */}
+            <AddProductModal
+              isOpen={isAddModalOpen}
+              onClose={() => setIsAddModalOpen(false)}
+              onSave={handleAddProduct}
+            />
     </ProducerLayout>
   );
 }

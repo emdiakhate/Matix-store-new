@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { Card } from '@/components/ui/card';
+import BadgeVerification from '@/components/BadgeVerification';
+import { useProducerVerification } from '@/lib/hooks/useProducerVerification';
 import {
   BarChart3,
   Package,
@@ -10,7 +12,10 @@ import {
   LogOut,
   MapPin,
   Star,
-  Zap
+  Zap,
+  FileText,
+  Bell,
+  Users
 } from 'lucide-react';
 
 interface ProducerLayoutProps {
@@ -34,10 +39,20 @@ export default function ProducerLayout({
   // Utiliser les données par défaut si currentUser n'est pas fourni
   const user = currentUser || defaultProducerUser;
   
+  // Hook pour vérifier le statut de vérification du producteur
+  // En mode démo, on utilise un ID mock
+  const { isVerified, isLoading: isVerificationLoading, refreshVerification } = useProducerVerification(
+    currentUser?.id || 'demo-producer-id'
+  );
+  
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <BarChart3 className="h-4 w-4" /> },
     { id: 'products', label: 'Mes Produits', icon: <Package className="h-4 w-4" /> },
     { id: 'opportunities', label: 'Mes Opportunités', icon: <Zap className="h-4 w-4" /> },
+    { id: 'sent-propositions', label: 'Mes Propositions Envoyées', icon: <FileText className="h-4 w-4" /> },
+    { id: 'received-offers', label: 'Mes Offres Reçues', icon: <Bell className="h-4 w-4" /> },
+    { id: 'announcements', label: 'Mes Annonces', icon: <Users className="h-4 w-4" /> },
+    { id: 'reviews', label: 'Mes Avis', icon: <Star className="h-4 w-4" /> },
     { id: 'orders', label: 'Commandes Reçues', icon: <ShoppingCart className="h-4 w-4" /> },
     { id: 'stats', label: 'Statistiques', icon: <BarChart3 className="h-4 w-4" /> },
     { id: 'geolocation', label: 'Géolocalisation', icon: <MapPin className="h-4 w-4" /> },
@@ -62,6 +77,19 @@ export default function ProducerLayout({
             <span className="text-gray-400">|</span>
             <a href="#" className="hover:text-green-600">Mon Compte</a>
             <span className="text-gray-400">|</span>
+            
+            {/* Badge de vérification dans le header */}
+            {!isVerificationLoading && (
+              <>
+                <BadgeVerification 
+                  isVerified={isVerified} 
+                  size="sm" 
+                  showText={false}
+                />
+                <span className="text-gray-400">|</span>
+              </>
+            )}
+            
             <a href="#" className="hover:text-green-600 flex items-center gap-1">
               🔒 Déconnexion
             </a>
@@ -116,7 +144,18 @@ export default function ProducerLayout({
                 </div>
                 <h3 className="font-semibold text-gray-900">{user.name}</h3>
                 <p className="text-sm text-gray-500">{user.email}</p>
-                <p className="text-xs text-green-600">Producteur</p>
+                <p className="text-xs text-green-600 mb-2">Producteur</p>
+                
+                {/* Badge de vérification */}
+                {!isVerificationLoading && (
+                  <div className="flex justify-center">
+                    <BadgeVerification 
+                      isVerified={isVerified} 
+                      size="sm" 
+                      showText={true}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Menu Navigation */}
