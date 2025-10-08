@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Star, X, Upload } from 'lucide-react';
@@ -139,7 +139,7 @@ export default function ProducerReviewsPage() {
   };
 
   return (
-    <ProducerLayout activePage="reviews">
+    <AdaptiveLayout activePage="reviews">
       <div className="space-y-6">
         {/* En-tête */}
         <div className="flex justify-between items-center">
@@ -335,6 +335,6 @@ export default function ProducerReviewsPage() {
           </div>
         )}
       </div>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

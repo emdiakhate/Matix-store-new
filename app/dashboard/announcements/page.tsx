@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import TabButton from '@/components/ui/TabButton';
 
 // Mock data pour les annonces du producteur
@@ -144,7 +144,7 @@ export default function ProducerAnnouncementsPage() {
   };
 
   return (
-    <ProducerLayout activePage="announcements">
+    <AdaptiveLayout activePage="announcements">
       <div className="space-y-6">
         {/* En-tête */}
         <div className="flex justify-between items-center">
@@ -610,6 +610,6 @@ export default function ProducerAnnouncementsPage() {
           </div>
         )}
       </div>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

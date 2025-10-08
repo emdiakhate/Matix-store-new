@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import InvoiceModal from '@/components/InvoiceModal';
 import { authService, User as UserType } from '@/lib/auth';
 import { 
@@ -103,7 +103,7 @@ export default function DashboardPage() {
   const currentOrders = receivedOrders.slice(startIndex, endIndex);
 
   return (
-    <ProducerLayout activePage="dashboard">
+    <AdaptiveLayout activePage="dashboard">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-gray-600">Bienvenue sur votre tableau de bord</p>
@@ -218,6 +218,6 @@ export default function DashboardPage() {
           order={selectedOrder}
         />
       )}
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

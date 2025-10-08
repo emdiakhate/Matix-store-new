@@ -1,0 +1,258 @@
+/* Micro-interactions professionnelles pour le RoleSwitcher */
+
+/* Variables CSS pour les couleurs cohérentes */
+:root {
+  /* Couleurs Producteur */
+  --farmer-primary: #10B981;
+  --farmer-light: #34D399;
+  --farmer-dark: #059669;
+  
+  /* Couleurs Distributeur */
+  --distributor-primary: #3B82F6;
+  --distributor-light: #60A5FA;
+  --distributor-dark: #2563EB;
+  
+  /* Transitions */
+  --transition-fast: 150ms;
+  --transition-normal: 300ms;
+  --transition-slow: 500ms;
+}
+
+/* Animations de base */
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes bounce-attention {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+/* Classes d'animation */
+.animate-slide-down {
+  animation: slide-down var(--transition-normal) ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in var(--transition-normal) ease-out;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left var(--transition-normal) ease-out;
+}
+
+.animate-bounce-attention {
+  animation: bounce-attention 2s ease-in-out;
+}
+
+/* Micro-interactions pour les boutons */
+.role-switcher-button {
+  @apply transition-all duration-150 ease-in-out;
+  @apply hover:translate-y-[-1px] hover:shadow-lg;
+  @apply active:scale-95 active:duration-100;
+  @apply focus:ring-2 focus:ring-offset-2;
+}
+
+.role-switcher-button:focus {
+  @apply outline-none;
+}
+
+.role-switcher-button.farmer-theme:focus {
+  @apply ring-green-500;
+}
+
+.role-switcher-button.distributor-theme:focus {
+  @apply ring-blue-500;
+}
+
+/* Hover effects pour les liens de navigation */
+.nav-link {
+  @apply transition-all duration-300 ease-in-out;
+  @apply hover:translate-y-[-1px] hover:shadow-md;
+  @apply focus:ring-2 focus:ring-offset-2;
+}
+
+.nav-link:focus {
+  @apply outline-none;
+}
+
+/* Stagger animation pour les éléments de navigation */
+.nav-link:nth-child(1) { animation-delay: 0ms; }
+.nav-link:nth-child(2) { animation-delay: 50ms; }
+.nav-link:nth-child(3) { animation-delay: 100ms; }
+.nav-link:nth-child(4) { animation-delay: 150ms; }
+.nav-link:nth-child(5) { animation-delay: 200ms; }
+.nav-link:nth-child(6) { animation-delay: 250ms; }
+.nav-link:nth-child(7) { animation-delay: 300ms; }
+.nav-link:nth-child(8) { animation-delay: 350ms; }
+
+/* Badge multi-rôles avec animation d'attention */
+.multi-role-badge {
+  @apply transition-all duration-300 ease-in-out;
+  @apply hover:scale-105 hover:shadow-md;
+}
+
+.multi-role-badge.attention {
+  @apply animate-bounce-attention;
+}
+
+/* Tooltip pour le badge multi-rôles */
+.tooltip {
+  @apply absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2;
+  @apply bg-gray-900 text-white text-xs rounded py-1 px-2;
+  @apply opacity-0 pointer-events-none transition-opacity duration-200;
+  @apply whitespace-nowrap;
+}
+
+.tooltip::after {
+  content: '';
+  @apply absolute top-full left-1/2 transform -translate-x-1/2;
+  @apply border-4 border-transparent border-t-gray-900;
+}
+
+.tooltip.show {
+  @apply opacity-100 pointer-events-auto;
+}
+
+/* États de focus pour l'accessibilité */
+.focus-ring {
+  @apply focus:ring-2 focus:ring-offset-2 focus:outline-none;
+}
+
+.focus-ring.farmer-theme {
+  @apply focus:ring-green-500;
+}
+
+.focus-ring.distributor-theme {
+  @apply focus:ring-blue-500;
+}
+
+/* Transitions de page après switch */
+.page-transition {
+  @apply transition-all duration-300 ease-out;
+  @apply opacity-0 translate-y-2;
+}
+
+.page-transition.enter {
+  @apply opacity-100 translate-y-0;
+}
+
+/* Skeleton loading avec animation pulse */
+.skeleton-item {
+  @apply bg-gray-300 rounded animate-pulse;
+}
+
+.skeleton-item:nth-child(1) { animation-delay: 0ms; }
+.skeleton-item:nth-child(2) { animation-delay: 100ms; }
+.skeleton-item:nth-child(3) { animation-delay: 200ms; }
+.skeleton-item:nth-child(4) { animation-delay: 300ms; }
+.skeleton-item:nth-child(5) { animation-delay: 400ms; }
+.skeleton-item:nth-child(6) { animation-delay: 500ms; }
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .role-switcher-button {
+    @apply text-base py-3;
+  }
+  
+  .nav-link {
+    @apply py-3;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .role-switcher-button {
+    @apply text-sm py-2;
+  }
+}
+
+@media (min-width: 1025px) {
+  .role-switcher-button {
+    @apply text-sm py-2.5;
+  }
+}
+
+/* Dark mode ready (optionnel) */
+@media (prefers-color-scheme: dark) {
+  .dark\:bg-gray-800 {
+    background-color: #1f2937;
+  }
+  
+  .dark\:text-gray-200 {
+    color: #e5e7eb;
+  }
+  
+  .dark\:border-gray-700 {
+    border-color: #374151;
+  }
+}
+
+/* Haptic feedback simulation */
+.haptic-feedback {
+  @apply active:scale-95 active:duration-100;
+}
+
+/* Performance optimizations */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-down,
+  .animate-fade-in,
+  .animate-slide-in-left,
+  .animate-bounce-attention {
+    animation: none;
+  }
+  
+  .role-switcher-button,
+  .nav-link {
+    transition: none;
+  }
+}

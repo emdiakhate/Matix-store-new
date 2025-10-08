@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import AchatRow from '@/components/AchatRow';
 import FactureModal from '@/components/FactureModal';
 import { Search, Download } from 'lucide-react';
@@ -191,16 +191,16 @@ export default function AchatsPage() {
 
   if (loading) {
     return (
-      <DistributorLayout activePage="achats">
+      <AdaptiveLayout activePage="achats">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
-      </DistributorLayout>
+      </AdaptiveLayout>
     );
   }
 
   return (
-    <DistributorLayout activePage="achats">
+    <AdaptiveLayout activePage="achats">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Mes Achats</h1>
@@ -307,6 +307,6 @@ export default function AchatsPage() {
         achat={selectedAchat}
         onDownloadFacture={handleDownloadFacture}
       />
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

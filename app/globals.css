@@ -5,6 +5,12 @@
 /* Leaflet CSS */
 @import 'leaflet/dist/leaflet.css';
 
+/* Sidebar transitions */
+@import '../styles/sidebar-transitions.css';
+
+/* Micro-interactions */
+@import '../styles/micro-interactions.css';
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;

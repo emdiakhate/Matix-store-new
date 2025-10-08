@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { 
   Eye,
   ChevronLeft,
@@ -149,7 +149,7 @@ export default function DistributorDashboardPage() {
   const currentAlerts = recentAlerts.slice(startIndex, endIndex);
 
   return (
-    <DistributorLayout activePage="dashboard">
+    <AdaptiveLayout activePage="dashboard">
       {/* Header */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Dashboard Distributeur</h1>
@@ -258,6 +258,6 @@ export default function DistributorDashboardPage() {
                 </div>
               </div>
             </Card>
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

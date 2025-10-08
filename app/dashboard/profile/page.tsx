@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { Upload } from 'lucide-react';
 
 export default function UpdateProfilePage() {
@@ -33,7 +33,7 @@ export default function UpdateProfilePage() {
   };
 
   return (
-    <ProducerLayout activePage="profile">
+    <AdaptiveLayout activePage="profile">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Mon Profil</h1>
       </div>
@@ -163,6 +163,6 @@ export default function UpdateProfilePage() {
           </Card>
         </div>
       </div>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

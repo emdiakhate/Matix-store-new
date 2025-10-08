@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import PropositionModal from '@/components/PropositionModal';
 import { 
   MapPin, 
@@ -252,7 +252,7 @@ export default function SearchProducersPage() {
   };
 
   return (
-    <DistributorLayout activePage="search">
+    <AdaptiveLayout activePage="search">
       {/* Header */}
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900">Rechercher Producteurs</h1>
@@ -503,6 +503,6 @@ export default function SearchProducersPage() {
           onSubmit={handleSubmitProposition}
         />
       )}
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

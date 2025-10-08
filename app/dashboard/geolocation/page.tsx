@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import GeolocationComponent from '@/components/GeolocationComponent';
 import LeafletMap from '@/components/LeafletMap';
 import { useProducerVerification } from '@/lib/hooks/useProducerVerification';
@@ -91,7 +91,7 @@ export default function GeolocationPage() {
   };
 
   return (
-    <ProducerLayout activePage="geolocation">
+    <AdaptiveLayout activePage="geolocation">
       <div className="space-y-6">
         {/* Composant de géolocalisation GPS */}
         <GeolocationComponent
@@ -221,6 +221,6 @@ export default function GeolocationPage() {
           </Button>
         </div>
       </div>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

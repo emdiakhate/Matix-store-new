@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { 
   Edit,
   Phone,
@@ -54,7 +54,7 @@ export default function DistributorProfilePage() {
   };
 
   return (
-    <DistributorLayout activePage="profile">
+    <AdaptiveLayout activePage="profile">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Mon Profil Distributeur</h1>
@@ -326,6 +326,6 @@ export default function DistributorProfilePage() {
           </Link>
         </div>
       </Card>
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import OffersModal from '@/components/OffersModal';
 import CreateRequestModal, { NewRequestData } from '@/components/CreateRequestModal';
 import { 
@@ -366,16 +366,16 @@ export default function RequestsPage() {
 
   if (loading) {
     return (
-      <DistributorLayout activePage="requests">
+      <AdaptiveLayout activePage="requests">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      </DistributorLayout>
+      </AdaptiveLayout>
     );
   }
 
   return (
-    <DistributorLayout activePage="requests">
+    <AdaptiveLayout activePage="requests">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Gestion des Annonces</h1>
@@ -568,6 +568,6 @@ export default function RequestsPage() {
         onClose={() => setShowCreateModal(false)}
         onSubmit={handleCreateRequest}
       />
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

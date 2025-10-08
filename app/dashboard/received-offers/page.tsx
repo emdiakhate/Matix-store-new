@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import TabButton from '@/components/ui/TabButton';
 
 // Mock data pour les offres reçues
@@ -155,7 +155,7 @@ export default function ReceivedOffersPage() {
   };
 
   return (
-    <ProducerLayout activePage="received-offers">
+    <AdaptiveLayout activePage="received-offers">
       <div className="space-y-6">
         {/* En-tête */}
         <div className="flex justify-between items-center">
@@ -438,6 +438,6 @@ export default function ReceivedOffersPage() {
           </div>
         )}
       </div>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

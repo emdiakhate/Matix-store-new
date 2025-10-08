@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import ReviewModal from '@/components/ReviewModal';
 import StarRatingInput from '@/components/ui/StarRatingInput';
 import Toast, { useToast } from '@/components/ui/Toast';
@@ -186,16 +186,16 @@ export default function MyReviewsPage() {
 
   if (loading) {
     return (
-      <DistributorLayout activePage="my-reviews">
+      <AdaptiveLayout activePage="my-reviews">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
-      </DistributorLayout>
+      </AdaptiveLayout>
     );
   }
 
   return (
-    <DistributorLayout activePage="my-reviews">
+    <AdaptiveLayout activePage="my-reviews">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Mes Avis</h1>
@@ -383,6 +383,6 @@ export default function MyReviewsPage() {
           <Toast key={toast.id} {...toast} />
         ))}
       </div>
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

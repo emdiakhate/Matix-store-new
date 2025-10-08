@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { Card } from '@/components/ui/card';
 import TabButton from '@/components/ui/TabButton';
 import OpportuniteRow from '@/components/OpportuniteRow';
@@ -281,7 +281,7 @@ export default function OpportunitiesPage() {
   const currentOpportunites = getFilteredOpportunites(activeTab);
 
   return (
-    <ProducerLayout activePage="opportunities">
+    <AdaptiveLayout activePage="opportunities">
       <div className="space-y-6">
         {/* Header avec titre et statistiques */}
         <div className="flex justify-between items-center">
@@ -431,6 +431,6 @@ export default function OpportunitiesPage() {
         opportunite={selectedOpportunite}
         onUpdateOffer={handleUpdateOffer}
       />
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

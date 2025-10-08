@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { 
   Search,
   Filter,
@@ -144,7 +144,7 @@ export default function ProducerOrdersPage() {
   });
 
   return (
-    <ProducerLayout activePage="orders">
+    <AdaptiveLayout activePage="orders">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Commandes Reçues</h1>
       </div>
@@ -278,6 +278,6 @@ export default function ProducerOrdersPage() {
           </table>
         </div>
       </Card>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

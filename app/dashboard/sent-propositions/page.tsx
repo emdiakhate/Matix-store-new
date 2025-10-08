@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import ProducerLayout from '@/components/layouts/ProducerLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { 
   Eye,
   CheckCircle,
@@ -266,16 +266,16 @@ export default function SentPropositionsPage() {
 
   if (loading) {
     return (
-      <ProducerLayout activePage="sent-propositions">
+      <AdaptiveLayout activePage="sent-propositions">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
-      </ProducerLayout>
+      </AdaptiveLayout>
     );
   }
 
   return (
-    <ProducerLayout activePage="sent-propositions">
+    <AdaptiveLayout activePage="sent-propositions">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -431,6 +431,6 @@ export default function SentPropositionsPage() {
           </div>
         )}
       </div>
-    </ProducerLayout>
+    </AdaptiveLayout>
   );
 }

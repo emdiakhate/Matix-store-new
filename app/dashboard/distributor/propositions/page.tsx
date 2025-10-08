@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import { 
   Eye,
   CheckCircle,
@@ -299,17 +299,17 @@ export default function DistributorPropositionsPage() {
 
   if (loading) {
     return (
-      <DistributorLayout activePage="propositions">
+      <AdaptiveLayout activePage="propositions">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
-      </DistributorLayout>
+      </AdaptiveLayout>
     );
   }
 
   if (error) {
     return (
-      <DistributorLayout activePage="propositions">
+      <AdaptiveLayout activePage="propositions">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800">{error}</p>
           <button 
@@ -319,12 +319,12 @@ export default function DistributorPropositionsPage() {
             Réessayer
           </button>
         </div>
-      </DistributorLayout>
+      </AdaptiveLayout>
     );
   }
 
   return (
-    <DistributorLayout activePage="propositions">
+    <AdaptiveLayout activePage="propositions">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -375,6 +375,6 @@ export default function DistributorPropositionsPage() {
           ))}
         </div>
       )}
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }

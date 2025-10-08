@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import DistributorLayout from '@/components/layouts/DistributorLayout';
+import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import AlertCard from '@/components/AlertCard';
 import NotificationsSidebar from '@/components/NotificationsSidebar';
 import CreateAlertModal, { NewAlertData } from '@/components/CreateAlertModal';
@@ -257,16 +257,16 @@ export default function AlertsPage() {
 
   if (loading) {
   return (
-      <DistributorLayout activePage="alerts">
+      <AdaptiveLayout activePage="alerts">
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
         </div>
-      </DistributorLayout>
+      </AdaptiveLayout>
     );
   }
 
   return (
-    <DistributorLayout activePage="alerts">
+    <AdaptiveLayout activePage="alerts">
       <div className="flex gap-6">
         {/* Zone principale des alertes */}
         <div className="flex-1">
@@ -395,6 +395,6 @@ export default function AlertsPage() {
           border: none;
         }
       `}</style>
-    </DistributorLayout>
+    </AdaptiveLayout>
   );
 }
