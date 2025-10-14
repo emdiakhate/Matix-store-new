@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { ChatBotProductData, ProductFromChat, transformChatDataToProduct, FlowType, ChatFlow } from '@/types/chatbot.types';
 import { playStepAudio, stopAllAudio, preloadAudioFiles } from '@/lib/services/audioService';
 import { demoAudioUrls, audioScripts } from '@/lib/services/audioGenerator';
+import { shareToWhatsApp, getWhatsAppButtonText, showPopupBlockedGuide } from '@/services/shareService';
+import { useToast } from '@/components/Toast';
 
 interface Message {
   id: string;
@@ -59,9 +61,13 @@ export default function ChatBot() {
   const [draggedPhotoIndex, setDraggedPhotoIndex] = useState<number | null>(null);
   
   const MAX_PHOTOS = 4;
+  
+  // Hook pour les toasts
+  const { showToast, ToastContainer } = useToast();
   const [showRecapModal, setShowRecapModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // États pour le système multifonction
   const [currentFlow, setCurrentFlow] = useState<FlowType>('main_menu');
@@ -559,63 +565,95 @@ export default function ChatBot() {
     });
   };
 
-  // Fonction d'upload (ajout à la liste)
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  // Fonction d'upload (gestion de plusieurs fichiers)
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('📸 handlePhotoUpload appelée');
     
-    if (!file) {
+    const files = e.target.files;
+    
+    if (!files || files.length === 0) {
       console.log('❌ Aucun fichier sélectionné');
       return;
     }
 
-    // Vérifier si on a déjà atteint le maximum
-    if (uploadedPhotos.length >= MAX_PHOTOS) {
-      alert(`Vous avez déjà ajouté le maximum de ${MAX_PHOTOS} photos.`);
-      return;
-    }
+    console.log(`📁 ${files.length} fichier(s) sélectionné(s)`);
 
-    console.log('📸 Fichier sélectionné:', file.name, file.type, file.size);
+    // Vérifier qu'on ne dépasse pas le maximum
+    const remainingSlots = MAX_PHOTOS - uploadedPhotos.length;
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
     
-    // Vérifier que c'est bien une image
-    if (!file.type.startsWith('image/')) {
-      alert('Veuillez sélectionner une image');
-      return;
+    if (files.length > remainingSlots) {
+      console.warn(`⚠️ Seulement ${remainingSlots} photo(s) peuvent être ajoutée(s)`);
+      alert(`Vous ne pouvez ajouter que ${remainingSlots} photo(s) supplémentaire(s). Maximum : ${MAX_PHOTOS} photos.`);
     }
 
-    // Vérifier la taille (max 5MB par image)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('La photo est trop grande (max 5MB)');
-      return;
-    }
-
-    // Créer une prévisualisation immédiate
-    const previewUrl = URL.createObjectURL(file);
-    setUploadingPreview(previewUrl);
+    console.log(`✅ Traitement de ${filesToProcess.length} fichier(s)`);
     setIsUploadingPhoto(true);
 
-    try {
-      // Compresser l'image
-      const compressedBase64 = await compressImage(file);
-      
-      // Ajouter à la liste
-      setUploadedPhotos(prev => [...prev, compressedBase64]);
-      
-      // Nettoyer
-      URL.revokeObjectURL(previewUrl);
-      setUploadingPreview(null);
-      setIsUploadingPhoto(false);
-      
-      console.log(`💾 Photo ${uploadedPhotos.length + 1}/${MAX_PHOTOS} ajoutée`);
-      
-      // Reset l'input pour pouvoir ajouter la même image si nécessaire
-      e.target.value = '';
-    } catch (error) {
-      console.error('❌ Erreur compression:', error);
-      URL.revokeObjectURL(previewUrl);
-      setUploadingPreview(null);
-      setIsUploadingPhoto(false);
-      alert('Erreur lors du traitement de la photo');
-    }
+    // Traiter chaque fichier
+    const promises = filesToProcess.map((file) => {
+      return new Promise<string>((resolve, reject) => {
+        console.log(`📄 Traitement de: ${file.name} (${(file.size / 1024).toFixed(2)} KB)`);
+
+        // Validations
+        if (!file.type.startsWith('image/')) {
+          console.error('❌ Type invalide:', file.type);
+          alert(`"${file.name}" n'est pas une image`);
+          reject('Type invalide');
+          return;
+        }
+
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          console.error('❌ Fichier trop volumineux:', file.size);
+          alert(`"${file.name}" est trop volumineux (max 5MB)`);
+          reject('Trop volumineux');
+          return;
+        }
+
+        // Convertir en base64
+        const reader = new FileReader();
+        
+        reader.onload = () => {
+          const base64 = reader.result as string;
+          console.log(`✅ "${file.name}" converti en base64`);
+          resolve(base64);
+        };
+        
+        reader.onerror = (error) => {
+          console.error(`❌ Erreur lecture "${file.name}":`, error);
+          reject(error);
+        };
+
+        reader.readAsDataURL(file);
+      });
+    });
+
+    // Attendre que toutes les photos soient traitées
+    Promise.allSettled(promises)
+      .then((results) => {
+        const successfulPhotos = results
+          .filter((result): result is PromiseFulfilledResult<string> => result.status === 'fulfilled')
+          .map((result) => result.value);
+
+        console.log(`✅ ${successfulPhotos.length} photo(s) traitée(s) avec succès`);
+
+        if (successfulPhotos.length > 0) {
+          setUploadedPhotos((prev) => {
+            const newPhotos = [...prev, ...successfulPhotos];
+            console.log(`💾 Total de photos: ${newPhotos.length}/${MAX_PHOTOS}`);
+            return newPhotos;
+          });
+        }
+
+        setIsUploadingPhoto(false);
+        e.target.value = ''; // Reset l'input
+      })
+      .catch((error) => {
+        console.error('❌ Erreur globale:', error);
+        setIsUploadingPhoto(false);
+        e.target.value = '';
+      });
   };
 
   // Supprimer une photo spécifique
@@ -721,8 +759,21 @@ export default function ChatBot() {
       
       // Afficher le récapitulatif après 3 secondes
       setTimeout(() => {
+        // Juste avant validateBeforeRecap()
+        console.log('═══════════════════════════════════════');
+        console.log('🔍 DEBUG VALIDATION');
+        console.log('═══════════════════════════════════════');
+        console.log('collectedData:', JSON.stringify(collectedData, null, 2));
+        console.log('uploadedPhotos.length:', uploadedPhotos.length);
+        console.log('collectedData.photos:', collectedData.photos);
+        console.log('collectedData.hasPhoto:', collectedData.hasPhoto);
+        console.log('═══════════════════════════════════════');
+        
         if (validateBeforeRecap()) {
+          console.log('✅ Validation réussie, affichage du modal');
           setShowRecapModal(true);
+        } else {
+          console.error('❌ Validation échouée');
         }
       }, 3000);
       
@@ -754,6 +805,56 @@ export default function ChatBot() {
     setDraggedPhotoIndex(null);
     
     console.log('📦 Photos réorganisées');
+  };
+
+  // === FONCTION DE PARTAGE WHATSAPP ===
+  
+  // Fonction de gestion du partage WhatsApp
+  const handleShareWhatsApp = () => {
+    console.log('🚀 Tentative de partage WhatsApp...');
+    
+    // Préparer les données de l'annonce
+    const announcementData = {
+      id: `temp-${Date.now()}`, // ID temporaire (remplacer par vrai ID en production)
+      productType: collectedData.productType || 'Produit',
+      category: collectedData.category || 'N/A',
+      quantity: collectedData.quantity || 0,
+      unit: collectedData.unit || 'unité',
+      price: collectedData.price || 0,
+      location: collectedData.location || 'Sénégal',
+      availabilityDate: collectedData.availabilityDate || new Date().toISOString().split('T')[0],
+      photos: collectedData.photos || []
+    };
+    
+    console.log('📦 Données de l\'annonce:', announcementData);
+    
+    // Tenter d'ouvrir WhatsApp
+    const success = shareToWhatsApp(announcementData);
+    
+    if (success) {
+      // Succès : WhatsApp s'est ouvert
+      showToast(
+        '📱 WhatsApp ouvert ! Sélectionnez vos contacts et envoyez le message 💚',
+        'success'
+      );
+      
+      // Optionnel : tracker l'événement
+      console.log('✅ Partage WhatsApp initié avec succès');
+      
+    } else {
+      // Échec : popup bloquée ou erreur
+      const guide = showPopupBlockedGuide();
+      
+      // Afficher un toast d'erreur avec guide
+      showToast(
+        '⚠️ Veuillez autoriser les popups pour partager sur WhatsApp',
+        'error'
+      );
+      
+      // Afficher le guide dans la console pour debug
+      console.warn('⚠️ Impossible d\'ouvrir WhatsApp');
+      console.log('📋 Guide pour l\'utilisateur:', guide);
+    }
   };
 
   const [currentStep, setCurrentStep] = useState('welcome');
@@ -881,6 +982,11 @@ export default function ChatBot() {
 
 
   const validateBeforeRecap = (): boolean => {
+    console.log('🔍 Validation des données collectées...');
+    console.log('📦 collectedData:', collectedData);
+    console.log('📸 uploadedPhotos:', uploadedPhotos);
+    
+    // Liste des champs requis (SANS photos car géré séparément)
     const required = [
       'action',
       'category', 
@@ -891,24 +997,36 @@ export default function ChatBot() {
       'availabilityDate',
       'minOrder',
       'location',
-      'deliveryRadius',
-      'photos'
+      'deliveryRadius'
     ];
     
-    const missing = required.filter(key => !(collectedData as any)[key]);
+    // Vérifier les champs requis
+    const missing = required.filter(key => {
+      const value = (collectedData as any)[key];
+      const isMissing = !value || value === '' || value === null || value === undefined;
+      
+      if (isMissing) {
+        console.warn(`⚠️ Champ manquant: ${key}`);
+      }
+      
+      return isMissing;
+    });
     
     if (missing.length > 0) {
       console.error('❌ Données manquantes:', missing);
-      alert(`Informations manquantes : ${missing.join(', ')}`);
+      alert(`⚠️ Informations manquantes : ${missing.join(', ')}`);
       return false;
     }
     
-    // Vérifier spécifiquement les photos
-    if (!collectedData.photos || collectedData.photos.length === 0) {
-      console.error('❌ Aucune photo ajoutée');
+    // ✅ VALIDATION SPÉCIALE POUR LES PHOTOS
+    if (!uploadedPhotos || uploadedPhotos.length === 0) {
+      console.error('❌ Aucune photo uploadée');
       alert('⚠️ Veuillez ajouter au moins une photo');
       return false;
     }
+    
+    console.log('✅ Toutes les validations sont passées');
+    console.log(`✅ ${uploadedPhotos.length} photo(s) détectée(s)`);
     
     return true;
   };
@@ -1608,195 +1726,173 @@ export default function ChatBot() {
 
               {currentStep === 'photo' && (
                 <div className="p-4">
-                  {/* Titre et instructions */}
+                  {/* Titre */}
                   <div className="text-center mb-4">
                     <p className="text-lg font-semibold text-gray-800 mb-2">
                       📸 Photos du produit
                     </p>
                     <p className="text-sm text-gray-600">
-                      Ajoutez jusqu'à {MAX_PHOTOS} photos (obligatoire)
+                      Sélectionnez jusqu'à {MAX_PHOTOS} photos (minimum 1 obligatoire)
                     </p>
                   </div>
 
-                  {/* Grille des photos */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    {/* Photos déjà uploadées */}
-                    {uploadedPhotos.map((photo, index) => (
-                      <div
-                        key={index}
-                        draggable
-                        onDragStart={() => handleDragStart(index)}
-                        onDragOver={handleDragOver}
-                        onDrop={() => handleDrop(index)}
-                        className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden shadow-md group cursor-move"
-                      >
-                        <img
-                          src={photo}
-                          alt={`Photo ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-
-                        {/* Badge numéro */}
-                        <div className="absolute top-2 left-2 w-6 h-6 bg-[#25d366] text-white rounded-full flex items-center justify-center text-xs font-bold">
-                          {index + 1}
-                        </div>
-
-                        {/* Bouton supprimer */}
-                        <button
-                          onClick={() => removePhoto(index)}
-                          className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                            <path d="M18 6L6 18M6 6l12 12"/>
-                          </svg>
-                        </button>
-
-                        {/* Badge "Photo principale" pour la première */}
-                        {index === 0 && (
-                          <div className="absolute bottom-2 left-2 right-2">
-                            <div className="bg-black/70 text-white text-xs py-1 px-2 rounded-full text-center font-medium">
-                              ⭐ Photo principale
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-
-                    {/* Prévisualisation pendant upload */}
-                    {uploadingPreview && (
-                      <div className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden">
-                        <img
-                          src={uploadingPreview}
-                          alt="Chargement..."
-                          className="w-full h-full object-cover opacity-50"
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <div className="animate-spin w-8 h-8 border-3 border-white border-t-transparent rounded-full"></div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Boutons d'ajout (si moins de 4 photos) */}
-                    {uploadedPhotos.length < MAX_PHOTOS && !uploadingPreview && (
-                      <label className="aspect-square bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#25d366] hover:bg-green-50 transition-all group">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          onChange={handlePhotoUpload}
-                          className="hidden"
-                          disabled={isUploadingPhoto}
-                        />
-
+                  {/* SI AUCUNE PHOTO : Afficher le grand bouton d'upload */}
+                  {uploadedPhotos.length === 0 && (
+                    <label className="block w-full cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                        disabled={isUploadingPhoto}
+                      />
+                      
+                      <div className="border-2 border-dashed border-gray-300 rounded-xl p-12 hover:border-[#25d366] hover:bg-green-50 transition-all">
                         {isUploadingPhoto ? (
                           <div className="text-center">
-                            <div className="animate-spin w-8 h-8 border-3 border-[#25d366] border-t-transparent rounded-full mx-auto mb-2"></div>
-                            <p className="text-xs text-gray-500">Chargement...</p>
+                            <div className="animate-spin w-16 h-16 border-4 border-[#25d366] border-t-transparent rounded-full mx-auto mb-4"></div>
+                            <p className="text-gray-600 font-medium">Chargement des photos...</p>
                           </div>
                         ) : (
-                          <div className="text-center p-4">
-                            <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-[#25d366] group-hover:text-white transition-all">
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 5v14M5 12h14"/>
+                          <div className="text-center">
+                            <div className="w-20 h-20 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                                <circle cx="8.5" cy="8.5" r="1.5"/>
+                                <polyline points="21 15 16 10 5 21"/>
                               </svg>
                             </div>
-                            <p className="text-sm font-medium text-gray-700 group-hover:text-[#25d366]">
-                              Ajouter une photo
+                            <p className="text-xl font-bold text-gray-900 mb-2">
+                              Cliquez pour ajouter des photos
                             </p>
-                            <p className="text-xs text-gray-500 mt-1">
-                              {uploadedPhotos.length + 1}/{MAX_PHOTOS}
+                            <p className="text-sm text-gray-500">
+                              Ou glissez-déposez vos images ici
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              JPG, PNG ou WebP • Maximum {MAX_PHOTOS} photos • 5 MB par photo
                             </p>
                           </div>
                         )}
-                      </label>
-                    )}
-
-                    {/* Slots vides (pour montrer visuellement combien on peut ajouter) */}
-                    {Array.from({ length: MAX_PHOTOS - uploadedPhotos.length - (uploadingPreview ? 1 : 0) }).map((_, i) => (
-                      <div
-                        key={`empty-${i}`}
-                        className="aspect-square bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl flex items-center justify-center"
-                      >
-                        <div className="text-center">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-1">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" opacity="0.3">
-                              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                              <circle cx="8.5" cy="8.5" r="1.5"/>
-                              <polyline points="21 15 16 10 5 21"/>
-                            </svg>
-                          </div>
-                          <p className="text-xs text-gray-400">
-                            {uploadedPhotos.length + i + 2}/{MAX_PHOTOS}
-                          </p>
-                        </div>
                       </div>
-                    ))}
-                  </div>
-
-                  {/* Info et conseils */}
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                    <div className="flex gap-2">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" className="shrink-0">
-                        <circle cx="12" cy="12" r="10"/>
-                        <line x1="12" y1="16" x2="12" y2="12"/>
-                        <line x1="12" y1="8" x2="12.01" y2="8"/>
-                      </svg>
-                      <div className="text-xs text-blue-800">
-                        <p className="font-semibold mb-1">💡 Conseils pour de bonnes photos :</p>
-                        <ul className="space-y-1 list-disc list-inside">
-                          <li>Prenez des photos claires et nettes</li>
-                          <li>Éclairage naturel si possible</li>
-                          <li>Montrez différents angles du produit</li>
-                          <li>La première photo sera la photo principale</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Boutons d'action */}
-                  <div className="flex gap-3">
-                    {/* Bouton Continuer (actif seulement si au moins 1 photo) */}
-                    <button
-                      onClick={handleContinueAfterPhoto}
-                      disabled={uploadedPhotos.length === 0}
-                      className={`flex-1 py-3 rounded-xl font-bold transition-all shadow-lg ${
-                        uploadedPhotos.length > 0
-                          ? 'bg-[#25d366] text-white hover:bg-[#20bd5a]'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                    >
-                      {uploadedPhotos.length === 0 ? (
-                        <>❌ Ajoutez au moins 1 photo</>
-                      ) : (
-                        <>✓ Continuer ({uploadedPhotos.length} photo{uploadedPhotos.length > 1 ? 's' : ''})</>
-                      )}
-                    </button>
-
-                    {/* Bouton Tout supprimer (si au moins 1 photo) */}
-                    {uploadedPhotos.length > 0 && (
-                      <button
-                        onClick={clearAllPhotos}
-                        className="px-6 py-3 border-2 border-red-500 text-red-600 rounded-xl font-bold hover:bg-red-50 transition-all"
-                      >
-                        🗑️ Tout supprimer
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Compteur */}
-                  {uploadedPhotos.length > 0 && (
-                    <p className="text-center text-sm text-gray-600 mt-3">
-                      {uploadedPhotos.length === MAX_PHOTOS ? (
-                        <span className="text-green-600 font-semibold">
-                          ✓ Maximum atteint ({MAX_PHOTOS}/{MAX_PHOTOS} photos)
-                        </span>
-                      ) : (
-                        <span>
-                          Vous pouvez encore ajouter {MAX_PHOTOS - uploadedPhotos.length} photo{MAX_PHOTOS - uploadedPhotos.length > 1 ? 's' : ''}
-                        </span>
-                      )}
-                    </p>
+                    </label>
                   )}
+
+                  {/* SI DES PHOTOS SONT UPLOADÉES : Afficher la grille */}
+                  {uploadedPhotos.length > 0 && (
+                    <>
+                      {/* Grille des photos */}
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        {uploadedPhotos.map((photo, index) => (
+                          <div
+                            key={index}
+                            className="relative aspect-square bg-gray-100 rounded-xl overflow-hidden shadow-md group"
+                          >
+                            <img
+                              src={photo}
+                              alt={`Photo ${index + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+
+                            {/* Badge numéro */}
+                            <div className="absolute top-2 left-2 w-7 h-7 bg-[#25d366] text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
+                              {index + 1}
+                            </div>
+
+                            {/* Bouton supprimer */}
+                            <button
+                              onClick={() => removePhoto(index)}
+                              type="button"
+                              className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-600"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                              </svg>
+                            </button>
+
+                            {/* Badge "Photo principale" pour la première */}
+                            {index === 0 && (
+                              <div className="absolute bottom-2 left-2 right-2">
+                                <div className="bg-black/70 text-white text-xs py-1 px-2 rounded-full text-center font-medium">
+                                  ⭐ Photo principale
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+
+                        {/* Bouton pour ajouter plus de photos SI on n'a pas atteint le max */}
+                        {uploadedPhotos.length < MAX_PHOTOS && (
+                          <label className="aspect-square bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#25d366] hover:bg-green-50 transition-all group">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              disabled={isUploadingPhoto}
+                            />
+                            
+                            <div className="text-center p-4">
+                              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-2 group-hover:bg-[#25d366] group-hover:text-white transition-all">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M12 5v14M5 12h14"/>
+                                </svg>
+                              </div>
+                              <p className="text-sm font-medium text-gray-700 group-hover:text-[#25d366]">
+                                Ajouter
+                              </p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                {uploadedPhotos.length}/{MAX_PHOTOS}
+                              </p>
+                            </div>
+                          </label>
+                        )}
+                      </div>
+
+                      {/* Compteur et bouton supprimer tout */}
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm text-gray-600">
+                          {uploadedPhotos.length === MAX_PHOTOS ? (
+                            <span className="text-green-600 font-semibold">
+                              ✓ Maximum atteint ({MAX_PHOTOS} photos)
+                            </span>
+                          ) : (
+                            <span>
+                              {uploadedPhotos.length} photo{uploadedPhotos.length > 1 ? 's' : ''} • 
+                              {MAX_PHOTOS - uploadedPhotos.length} restante{MAX_PHOTOS - uploadedPhotos.length > 1 ? 's' : ''}
+                            </span>
+                          )}
+                        </p>
+                        
+                        <button
+                          onClick={clearAllPhotos}
+                          type="button"
+                          className="text-sm text-red-600 hover:text-red-700 font-medium underline"
+                        >
+                          🗑️ Tout supprimer
+                        </button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Bouton Continuer */}
+                  <button
+                    onClick={handleContinueAfterPhoto}
+                    disabled={uploadedPhotos.length === 0}
+                    type="button"
+                    className={`w-full py-4 rounded-xl font-bold text-lg transition-all shadow-lg ${
+                      uploadedPhotos.length > 0
+                        ? 'bg-[#25d366] text-white hover:bg-[#20bd5a]'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {uploadedPhotos.length === 0 ? (
+                      <>❌ Ajoutez au moins 1 photo pour continuer</>
+                    ) : (
+                      <>✓ Continuer avec {uploadedPhotos.length} photo{uploadedPhotos.length > 1 ? 's' : ''}</>
+                    )}
+                  </button>
                 </div>
               )}
 
@@ -1885,9 +1981,9 @@ export default function ChatBot() {
                             <polyline points="9 18 15 12 9 6"/>
                           </svg>
                         </button>
-                      </>
-                    )}
-                  </div>
+              </>
+            )}
+          </div>
 
                   {/* Miniatures (si plusieurs photos) */}
                   {collectedData.photos.length > 1 && (
@@ -1919,8 +2015,8 @@ export default function ChatBot() {
                           )}
                         </button>
                       ))}
-                    </div>
-                  )}
+        </div>
+      )}
 
                   {/* Indicateurs points (style carousel) */}
                   {collectedData.photos.length > 1 && (
@@ -1998,6 +2094,46 @@ export default function ChatBot() {
                   </div>
                 </div>
               </div>
+
+              {/* ========================================= */}
+              {/* NOUVEAU : Section de partage WhatsApp    */}
+              {/* ========================================= */}
+              <div className="mt-6 pt-6 border-t-2 border-gray-200">
+                <h4 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span>📤</span>
+                  <span>Partager votre annonce</span>
+                </h4>
+                
+                <p className="text-sm text-gray-600 mb-4">
+                  Partagez avec vos contacts pour obtenir plus de visibilité
+                </p>
+
+                {/* Bouton WhatsApp */}
+                <button
+                  onClick={handleShareWhatsApp}
+                  className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#25D366] hover:bg-[#20bd5a] text-white rounded-xl font-bold transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  {/* Icône WhatsApp */}
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                  </svg>
+                  
+                  <span>{getWhatsAppButtonText()}</span>
+                  
+                  {/* Flèche */}
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ml-auto">
+                    <path d="M5 12h14M12 5l7 7-7 7"/>
+                  </svg>
+                </button>
+
+                {/* Info supplémentaire */}
+                <p className="text-xs text-gray-500 text-center mt-3">
+                  💡 Le message sera pré-rempli, vous choisirez à qui l'envoyer
+                </p>
+              </div>
+              {/* ========================================= */}
+              {/* FIN : Section de partage WhatsApp        */}
+              {/* ========================================= */}
 
               <div className="mt-6 flex gap-3">
                 <button
@@ -2082,6 +2218,10 @@ export default function ChatBot() {
           </div>
         </div>
       )}
+
+      {/* Toast Container pour les notifications */}
+      <ToastContainer />
     </>
   );
 }
+

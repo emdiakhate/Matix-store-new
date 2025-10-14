@@ -46,9 +46,13 @@ export interface ChatBotProductData {
   category: 'poultry' | 'equipment' | 'medicine';
   productType: string;                  // Type spécifique (ex: "Poulets de chair")
   quantity: string;                     // Quantité sélectionnée
+  unit?: string;                        // Unité (kg, pièce, etc.)
   location: string;                     // Localisation
   price: string;                        // Fourchette de prix
   availability: string;                 // Disponibilité
+  availabilityDate?: string;            // Date de disponibilité
+  minOrder?: number;                    // Commande minimum
+  deliveryRadius?: number;              // Rayon de livraison
   hasPhoto: boolean;                    // A une photo ou non
   photos?: string[];                    // Array de photos en base64
   photoCount?: number;                  // Nombre de photos
