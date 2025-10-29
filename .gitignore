@@ -34,3 +34,22 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichiers dupliqués (pattern pour éviter futurs doublons)
+* 2.*
+* 2.tsx
+* 2.ts
+* 2.js
+* 2.css
+* 2.md
+*_2.*
+
+# Fichiers de backup temporaires
+*.backup
+*.old
+*.temp
+
+# Fichiers de correction obsolètes
+CORRECTION-*.md
+SOLUTION-*.md
+FIX-*.md
