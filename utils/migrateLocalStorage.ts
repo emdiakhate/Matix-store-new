@@ -28,7 +28,7 @@ export interface MigrationResult {
 const MIGRATION_KEYS = {
   critical: [
     'currentUser',
-    'active_role', 
+    'active_role',
     'user_tokens',
     'auth_data'
   ],

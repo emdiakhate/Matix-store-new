@@ -17,15 +17,15 @@ describe('Security Tests', () => {
   describe('SecureStorage', () => {
     test('should encrypt critical data', () => {
       const testData = { 
-        email: 'test@example.com', 
+        email: 'test@example.com',
         id: '123',
         password: 'secret123'
       }
-      
+
       // Stocker avec chiffrement
       const success = secureStorage.setItem('test_critical', testData, true)
       expect(success).toBe(true)
-      
+
       // Récupérer et vérifier
       const retrieved = secureStorage.getItem('test_critical', true)
       expect(retrieved).toEqual(testData)
@@ -97,7 +97,7 @@ describe('Security Tests', () => {
         encrypted: true
       }
       sessionStorage.setItem(metaKey, JSON.stringify(expiredMeta))
-      
+
       const cleanedCount = secureStorage.cleanupExpiredData()
       expect(cleanedCount).toBeGreaterThan(0)
       
@@ -114,7 +114,7 @@ describe('Security Tests', () => {
         email: 'test@example.com',
         role: 'acheteur'
       }
-      
+
       // Créer une session
       const session = await sessionService.createSession(userData)
       expect(session).toBeTruthy()
@@ -136,7 +136,7 @@ describe('Security Tests', () => {
         email: 'test@example.com',
         role: 'acheteur'
       }
-      
+
       // Créer une session
       const session = await sessionService.createSession(userData)
       expect(session).toBeTruthy()
@@ -164,7 +164,7 @@ describe('Security Tests', () => {
         email: 'test@example.com',
         role: 'acheteur'
       }
-      
+
       // Créer une session
       const session = await sessionService.createSession(userData)
       expect(session).toBeTruthy()
@@ -213,7 +213,7 @@ describe('Security Tests', () => {
         email: 'test@example.com',
         role: 'acheteur'
       }
-      
+
       // Créer une session
       const session = await sessionService.createSession(userData)
       expect(session).toBeTruthy()
@@ -409,11 +409,11 @@ describe('Integration Tests', () => {
       email: 'test@example.com',
       role: 'acheteur'
     }
-    
+
     // 1. Créer une session
     const session = await sessionService.createSession(userData)
     expect(session).toBeTruthy()
-    
+
     // 2. Stocker des données utilisateur
     const userProfile = {
       nom: 'Dupont',
@@ -425,7 +425,7 @@ describe('Integration Tests', () => {
     // 3. Vérifier que tout fonctionne ensemble
     const retrievedSession = sessionService.getSession()
     const retrievedProfile = secureStorage.getItem('user_profile', true)
-    
+
     expect(retrievedSession).toBeTruthy()
     expect(retrievedProfile).toEqual(userProfile)
     

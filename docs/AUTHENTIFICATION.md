@@ -67,7 +67,7 @@ NEXT_PUBLIC_SESSION_DURATION=120
 import { useAuth } from '@/hooks/useAuth'
 
 function LoginComponent() {
-  const { 
+  const {
     user, 
     profile, 
     loading, 
