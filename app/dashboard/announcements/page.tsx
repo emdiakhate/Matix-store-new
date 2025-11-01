@@ -4,8 +4,30 @@ import { useState } from 'react';
 import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import TabButton from '@/components/ui/TabButton';
 
+// Types
+type AnnouncementStatus = 'draft' | 'active' | 'closed' | 'expired';
+
+interface Announcement {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  price: number;
+  availabilityDate: string;
+  status: AnnouncementStatus;
+  createdAt: string;
+  updatedAt: string;
+  images: string[];
+  location: string;
+  minimumOrder: number;
+  deliveryAvailable: boolean;
+  deliveryRadius: number;
+}
+
 // Mock data pour les annonces du producteur
-const mockAnnouncements = [
+const mockAnnouncements: Announcement[] = [
   {
     id: '1',
     title: 'Poulets de chair disponibles pour le réveillon',
@@ -80,14 +102,14 @@ const mockAnnouncements = [
   }
 ];
 
-const statusLabels = {
+const statusLabels: Record<AnnouncementStatus, string> = {
   draft: 'Brouillon',
   active: 'Active',
   closed: 'Fermée',
   expired: 'Expirée'
 };
 
-const statusColors = {
+const statusColors: Record<AnnouncementStatus, string> = {
   draft: 'bg-gray-100 text-gray-800',
   active: 'bg-green-100 text-green-800',
   closed: 'bg-red-100 text-red-800',
@@ -97,7 +119,7 @@ const statusColors = {
 export default function ProducerAnnouncementsPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<Announcement | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const filteredAnnouncements = mockAnnouncements.filter(announcement => {
@@ -288,8 +310,8 @@ export default function ProducerAnnouncementsPage() {
                       {formatDate(announcement.availabilityDate)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[announcement.status]}`}>
-                        {statusLabels[announcement.status]}
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[announcement.status as AnnouncementStatus] || statusColors.draft}`}>
+                        {statusLabels[announcement.status as AnnouncementStatus] || statusLabels.draft}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
