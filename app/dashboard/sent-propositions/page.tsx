@@ -4,12 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
-import { 
-  Eye,
-  CheckCircle,
-  XCircle,
-  Clock
-} from 'lucide-react';
+import { Eye, CheckCircle, XCircle, Clock, FileText } from 'lucide-react';
 
 interface Proposition {
   id: string;
@@ -58,7 +53,7 @@ export default function SentPropositionsPage() {
     pending: 0,
     accepted: 0,
     rejected: 0,
-    expired: 0
+    expired: 0,
   });
 
   useEffect(() => {
@@ -68,7 +63,7 @@ export default function SentPropositionsPage() {
   const loadPropositions = async () => {
     try {
       setLoading(true);
-      
+
       // Données mockées pour les propositions envoyées par le producteur
       const mockPropositions: Proposition[] = [
         {
@@ -78,7 +73,8 @@ export default function SentPropositionsPage() {
           announcement_id: 'ann1',
           proposed_price: 4500,
           quantity: 100,
-          message: 'Je peux fournir 100 poulets fermiers de qualité supérieure pour le 31 décembre. Prix compétitif et livraison garantie.',
+          message:
+            'Je peux fournir 100 poulets fermiers de qualité supérieure pour le 31 décembre. Prix compétitif et livraison garantie.',
           status: 'pending',
           created_at: '2024-01-15T10:30:00Z',
           expires_at: '2024-01-25T10:30:00Z',
@@ -90,13 +86,13 @@ export default function SentPropositionsPage() {
             quantity: 150,
             unit: 'pièces',
             budget: 500000,
-            deadline: '2024-01-30'
+            deadline: '2024-01-30',
           },
           users: {
             id: 'dist1',
             business_name: 'Super Marché Dakar',
-            is_verified: true
-          }
+            is_verified: true,
+          },
         },
         {
           id: '2',
@@ -107,7 +103,8 @@ export default function SentPropositionsPage() {
           quantity: 50,
           message: 'Poulets fermiers disponibles, prix attractif pour commande groupée.',
           status: 'accepted',
-          response_message: 'Parfait ! Nous acceptons votre proposition. Contactez-nous pour finaliser.',
+          response_message:
+            'Parfait ! Nous acceptons votre proposition. Contactez-nous pour finaliser.',
           created_at: '2024-01-10T14:20:00Z',
           responded_at: '2024-01-12T09:15:00Z',
           announcements: {
@@ -118,13 +115,13 @@ export default function SentPropositionsPage() {
             quantity: 50,
             unit: 'pièces',
             budget: 200000,
-            deadline: '2024-01-20'
+            deadline: '2024-01-20',
           },
           users: {
             id: 'dist2',
             business_name: 'Boucherie Moderne',
-            is_verified: false
-          }
+            is_verified: false,
+          },
         },
         {
           id: '3',
@@ -135,7 +132,8 @@ export default function SentPropositionsPage() {
           quantity: 75,
           message: 'Poulets bio disponibles, qualité premium garantie.',
           status: 'rejected',
-          response_message: 'Merci pour votre proposition, mais nous avons choisi un autre fournisseur.',
+          response_message:
+            'Merci pour votre proposition, mais nous avons choisi un autre fournisseur.',
           created_at: '2024-01-08T16:45:00Z',
           responded_at: '2024-01-10T11:30:00Z',
           announcements: {
@@ -146,13 +144,13 @@ export default function SentPropositionsPage() {
             quantity: 75,
             unit: 'pièces',
             budget: 350000,
-            deadline: '2024-01-15'
+            deadline: '2024-01-15',
           },
           users: {
             id: 'dist3',
             business_name: 'Bio Market',
-            is_verified: true
-          }
+            is_verified: true,
+          },
         },
         {
           id: '4',
@@ -173,28 +171,27 @@ export default function SentPropositionsPage() {
             quantity: 200,
             unit: 'pièces',
             budget: 800000,
-            deadline: '2024-01-18'
+            deadline: '2024-01-18',
           },
           users: {
             id: 'dist4',
             business_name: 'Restaurant Le Gourmet',
-            is_verified: true
-          }
-        }
+            is_verified: true,
+          },
+        },
       ];
 
       setPropositions(mockPropositions);
-      
+
       // Calculer les compteurs
       const newCounts = {
         all: mockPropositions.length,
         pending: mockPropositions.filter(p => p.status === 'pending').length,
         accepted: mockPropositions.filter(p => p.status === 'accepted').length,
         rejected: mockPropositions.filter(p => p.status === 'rejected').length,
-        expired: mockPropositions.filter(p => p.status === 'expired').length
+        expired: mockPropositions.filter(p => p.status === 'expired').length,
       };
       setCounts(newCounts);
-      
     } catch (error) {
       console.error('Erreur lors du chargement des propositions:', error);
     } finally {
@@ -233,11 +230,7 @@ export default function SentPropositionsPage() {
           </Badge>
         );
       default:
-        return (
-          <Badge className="bg-gray-100 text-gray-800 border-gray-200">
-            {status}
-          </Badge>
-        );
+        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">{status}</Badge>;
     }
   };
 
@@ -247,7 +240,7 @@ export default function SentPropositionsPage() {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -255,7 +248,7 @@ export default function SentPropositionsPage() {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'XOF',
-      minimumFractionDigits: 0
+      minimumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -280,9 +273,7 @@ export default function SentPropositionsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mes Propositions Envoyées</h1>
-          <p className="text-gray-600 mt-1">
-            Gérez vos propositions envoyées aux distributeurs
-          </p>
+          <p className="text-gray-600 mt-1">Gérez vos propositions envoyées aux distributeurs</p>
         </div>
       </div>
 
@@ -317,9 +308,9 @@ export default function SentPropositionsPage() {
           { id: 'pending', label: 'En attente' },
           { id: 'accepted', label: 'Acceptées' },
           { id: 'rejected', label: 'Refusées' },
-          { id: 'expired', label: 'Expirées' }
-        ].map((tab) => (
-          <button 
+          { id: 'expired', label: 'Expirées' },
+        ].map(tab => (
+          <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
@@ -335,8 +326,11 @@ export default function SentPropositionsPage() {
 
       {/* Propositions List */}
       <div className="space-y-4">
-        {filteredPropositions.map((proposition) => (
-          <div key={proposition.id} className="bg-white p-6 rounded-lg border hover:shadow-md transition-shadow">
+        {filteredPropositions.map(proposition => (
+          <div
+            key={proposition.id}
+            className="bg-white p-6 rounded-lg border hover:shadow-md transition-shadow"
+          >
             <div className="flex justify-between items-start mb-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
@@ -352,37 +346,37 @@ export default function SentPropositionsPage() {
                     <div className="flex items-center gap-2 mt-1">
                       <span>{proposition.users.business_name}</span>
                       {proposition.users.is_verified && (
-                        <Badge className="bg-blue-100 text-blue-800 text-xs">
-                          Vérifié
-                        </Badge>
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">Vérifié</Badge>
                       )}
                     </div>
                   </div>
-                  
+
                   <div>
                     <span className="font-medium">Prix proposé:</span>
                     <div className="text-lg font-bold text-green-600">
                       {formatCurrency(proposition.proposed_price)} / unité
                     </div>
                   </div>
-                  
+
                   <div>
                     <span className="font-medium">Quantité:</span>
-                    <div>{proposition.quantity} {proposition.announcements.unit}</div>
+                    <div>
+                      {proposition.quantity} {proposition.announcements.unit}
+                    </div>
                   </div>
-                  
+
                   <div>
                     <span className="font-medium">Total:</span>
                     <div className="text-lg font-bold text-gray-900">
                       {formatCurrency(proposition.proposed_price * proposition.quantity)}
                     </div>
                   </div>
-                  
+
                   <div>
                     <span className="font-medium">Envoyée le:</span>
                     <div>{formatDate(proposition.created_at)}</div>
                   </div>
-                  
+
                   {proposition.expires_at && (
                     <div>
                       <span className="font-medium">Expire le:</span>
@@ -408,13 +402,9 @@ export default function SentPropositionsPage() {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex gap-2 ml-4">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="flex items-center gap-2"
-                >
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <Eye className="h-4 w-4" />
                   Voir
                 </Button>
@@ -422,12 +412,14 @@ export default function SentPropositionsPage() {
             </div>
           </div>
         ))}
-        
+
         {filteredPropositions.length === 0 && (
           <div className="text-center py-12">
             <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune proposition trouvée</h3>
-            <p className="text-gray-600">Vous n'avez pas encore envoyé de propositions aux distributeurs.</p>
+            <p className="text-gray-600">
+              Vous n'avez pas encore envoyé de propositions aux distributeurs.
+            </p>
           </div>
         )}
       </div>
