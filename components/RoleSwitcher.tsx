@@ -15,10 +15,7 @@ interface RoleSwitcherProps {
   className?: string;
 }
 
-export default function RoleSwitcher({ 
-  size = 'md', 
-  className = '' 
-}: RoleSwitcherProps) {
+export default function RoleSwitcher({ size = 'md', className = '' }: RoleSwitcherProps) {
   const { activeRole, switchRole, user, isLoading } = useAuth();
   // const { switchRoleWithCache, isCached, isPrefetching } = useRolePrefetch(user);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -41,11 +38,9 @@ export default function RoleSwitcher({
   if (user.roles && user.roles.length === 1) {
     return (
       <div className={`mt-4 ${className}`}>
-        <Badge 
-          variant="outline" 
-          className="w-full justify-center text-xs text-gray-500 bg-gray-50"
-        >
-          Rôle unique : {user.role === 'producer' ? 'Producteur' : 'Distributeur'}
+        <Badge variant="outline" className="w-full justify-center text-xs text-gray-500 bg-gray-50">
+          Rôle unique :{' '}
+          {activeRole === 'farmer' || activeRole === 'producer' ? 'Producteur' : 'Distributeur'}
         </Badge>
       </div>
     );
@@ -57,7 +52,7 @@ export default function RoleSwitcher({
   }
 
   const handleRoleSwitch = async () => {
-    if (isLoading || isTransitioning) return;
+    if (isLoading || isTransitioning || !user?.id) return;
 
     // Haptic feedback si supporté
     if (navigator.vibrate) {
@@ -65,21 +60,28 @@ export default function RoleSwitcher({
     }
 
     setIsTransitioning(true);
-    
+
     try {
-      const newRole = activeRole === 'producer' ? 'distributor' : 'producer';
-      switchRole(newRole);
-      
+      // Convertir farmer/producer ↔ distributor
+      const newRole =
+        activeRole === 'farmer' || activeRole === 'producer' ? 'distributor' : 'farmer';
+
+      // Appeler switchRole qui mettra à jour en DB
+      await switchRole(newRole);
+
       // Animation de succès
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 500);
-      
+
       // Afficher le toast de confirmation
-      setToastMessage(`Vous êtes maintenant en mode ${newRole === 'producer' ? 'Producteur' : 'Distributeur'}`);
+      setToastMessage(
+        `Vous êtes maintenant en mode ${newRole === 'farmer' ? 'Producteur' : 'Distributeur'}`
+      );
       setShowToast(true);
-      
     } catch (error) {
       console.error('Erreur lors du changement de rôle:', error);
+      setToastMessage('Erreur lors du changement de rôle');
+      setShowToast(true);
     } finally {
       // Délai pour l'animation de transition
       setTimeout(() => {
@@ -94,11 +96,14 @@ export default function RoleSwitcher({
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           className="flex items-center gap-2"
         >
           <Check className="h-4 w-4 text-green-600" />
-          <span>✓ Passé en {user.role === 'producer' ? 'Producteur' : 'Distributeur'}</span>
+          <span>
+            ✓ Passé en{' '}
+            {activeRole === 'farmer' || activeRole === 'producer' ? 'Producteur' : 'Distributeur'}
+          </span>
         </motion.div>
       );
     }
@@ -110,13 +115,15 @@ export default function RoleSwitcher({
           animate={{ opacity: 1 }}
           className="flex items-center gap-2"
         >
-          <Loader2 className={`h-4 w-4 animate-spin ${user.role === 'producer' ? 'text-green-600' : 'text-blue-600'}`} />
+          <Loader2
+            className={`h-4 w-4 animate-spin ${activeRole === 'farmer' || activeRole === 'producer' ? 'text-green-600' : 'text-blue-600'}`}
+          />
           <span>Changement...</span>
         </motion.div>
       );
     }
 
-    if (user.role === 'producer') {
+    if (activeRole === 'farmer' || activeRole === 'producer') {
       return (
         <motion.div
           initial={{ opacity: 0 }}
@@ -152,10 +159,9 @@ export default function RoleSwitcher({
     }
   };
 
-
   return (
     <>
-      <motion.div 
+      <motion.div
         className={`mt-4 ${className}`}
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -179,7 +185,7 @@ export default function RoleSwitcher({
             focus:ring-2 focus:ring-offset-2 focus:ring-green-500
             ${isTransitioning ? 'bg-green-50 border-green-200' : ''}
             ${showAttention ? 'animate-bounce-attention' : ''}
-            ${user.role === 'producer' ? 'farmer-theme' : 'distributor-theme'}
+            ${activeRole === 'farmer' || activeRole === 'producer' ? 'farmer-theme' : 'distributor-theme'}
           `}
         >
           {getButtonContent()}
@@ -190,8 +196,8 @@ export default function RoleSwitcher({
       {user.roles && user.roles.length > 1 && (
         <div className="mt-2 text-center">
           <Tooltip content="Vous pouvez basculer entre Producteur et Distributeur">
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={`
                 multi-role-badge text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded
                 transition-all duration-300 hover:scale-105 hover:shadow-md

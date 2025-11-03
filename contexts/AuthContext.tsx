@@ -2,12 +2,14 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import { authService } from '@/services/auth/authService';
+import { supabase } from '@/lib/supabase/client';
 
-type Role = 'producer' | 'distributor';
+type Role = 'farmer' | 'distributor'; // Utiliser farmer au lieu de producer pour correspondre à la DB
 
 interface AuthContextType {
   activeRole: Role;
-  switchRole: (newRole: Role) => void;
+  switchRole: (newRole: Role) => Promise<void>;
   user: any;
   isLoading: boolean;
 }
@@ -16,100 +18,130 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
-  const [activeRole, setActiveRole] = useState<Role>(() => {
-    // Initialiser depuis localStorage
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('active_role');
-      if (stored && (stored === 'producer' || stored === 'distributor')) {
-        return stored as Role;
-      }
-    }
-    return 'producer';
-  });
-  
+  const [activeRole, setActiveRole] = useState<Role>('farmer');
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Charger l'utilisateur depuis localStorage
+  // Charger l'utilisateur depuis Supabase
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('currentUser');
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-          // Synchroniser le rôle avec l'utilisateur
-          if (userData.role && userData.role !== activeRole) {
-            setActiveRole(userData.role);
+    const loadUser = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+
+        if (session?.user) {
+          // Charger le profil depuis la table 'users'
+          const profile = await authService.getUserProfile(session.user.id);
+
+          if (profile) {
+            const userProfile = profile as any;
+            setUser({
+              ...userProfile,
+              id: session.user.id,
+              email: session.user.email,
+            });
+
+            // Synchroniser le rôle actif depuis la DB
+            if (userProfile.active_role) {
+              setActiveRole(userProfile.active_role as Role);
+            }
           }
-        } catch (error) {
-          console.error('Erreur lors du parsing de l\'utilisateur:', error);
         }
+      } catch (error) {
+        console.error("Erreur lors du chargement de l'utilisateur:", error);
+      } finally {
+        setIsLoading(false);
       }
-    }
-    setIsLoading(false);
+    };
+
+    loadUser();
+
+    // Écouter les changements d'auth
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const profile = await authService.getUserProfile(session.user.id);
+        if (profile) {
+          const userProfile = profile as any;
+          setUser({
+            ...userProfile,
+            id: session.user.id,
+            email: session.user.email,
+          });
+          if (userProfile.active_role) {
+            setActiveRole(userProfile.active_role as Role);
+          }
+        }
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setActiveRole('farmer');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const switchRole = (newRole: Role) => {
+  const switchRole = async (newRole: Role) => {
+    if (!user?.id) {
+      console.error("❌ Pas d'utilisateur pour changer de rôle");
+      return;
+    }
+
     console.log('🔄 Context - Switching to:', newRole);
-    
-    // Update state
-    setActiveRole(newRole);
-    
-    // Update localStorage
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('active_role', newRole);
-      
-      // Mettre à jour l'utilisateur dans localStorage
-      if (user) {
-        const updatedUser = { ...user, role: newRole };
-        localStorage.setItem('currentUser', JSON.stringify(updatedUser));
-        setUser(updatedUser);
+
+    try {
+      // Mettre à jour en base de données
+      const success = await authService.switchRole(user.id, newRole);
+
+      if (success) {
+        // Update state local
+        setActiveRole(newRole);
+
+        // Mettre à jour l'objet user
+        setUser((prev: any) => ({
+          ...prev,
+          active_role: newRole,
+        }));
+
+        // Dispatch event pour notifier les autres composants
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('roleChanged', {
+              detail: { newRole, user },
+            })
+          );
+        }
+
+        console.log('✅ Context - Role switched to:', newRole);
+
+        // Refresh pour recharger les données
+        router.refresh();
+      } else {
+        console.error('❌ Échec du changement de rôle en DB');
       }
+    } catch (error) {
+      console.error('❌ Erreur lors du changement de rôle:', error);
     }
-    
-    // Dispatch event pour notifier les autres composants
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('roleChanged', { 
-        detail: { newRole, user } 
-      }));
-    }
-    
-    // Force refresh de la page
-    router.refresh();
-    
-    console.log('✅ Context - Role switched to:', newRole);
   };
-  
+
   // Log à chaque changement
   useEffect(() => {
     console.log('🌍 Context - activeRole updated:', activeRole);
   }, [activeRole]);
 
-  // Écouter les changements de rôle depuis d'autres composants
-  useEffect(() => {
-    const handleRoleChange = (event: CustomEvent) => {
-      const { newRole } = event.detail;
-      if (newRole !== activeRole) {
-        setActiveRole(newRole);
-      }
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('roleChanged', handleRoleChange as EventListener);
-      return () => {
-        window.removeEventListener('roleChanged', handleRoleChange as EventListener);
-      };
-    }
-  }, [activeRole]);
-  
   return (
-    <AuthContext.Provider value={{ 
-      activeRole, 
-      switchRole, 
-      user, 
-      isLoading 
-    }}>
+    <AuthContext.Provider
+      value={{
+        activeRole,
+        switchRole,
+        user,
+        isLoading,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

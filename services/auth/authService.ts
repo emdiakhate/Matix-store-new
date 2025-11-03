@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client'
+import { supabase } from '@/lib/supabase/client';
 import {
   SignUpData,
   SignInData,
@@ -13,8 +13,8 @@ import {
   UserProfile,
   AuthError,
   AuthErrorType,
-  AuthErrorMessages
-} from '@/types/auth.types'
+  AuthErrorMessages,
+} from '@/types/auth.types';
 
 /**
  * Service d'authentification sécurisé avec Supabase
@@ -25,16 +25,16 @@ export class AuthService {
    * Validation de l'email
    */
   private validateEmail(email: string): boolean {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(email)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
   }
 
   /**
    * Validation du mot de passe (min 8 caractères, 1 majuscule, 1 chiffre)
    */
   private validatePassword(password: string): boolean {
-    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/
-    return passwordRegex.test(password)
+    const passwordRegex = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return passwordRegex.test(password);
   }
 
   /**
@@ -42,8 +42,8 @@ export class AuthService {
    */
   private validatePhone(phone: string): boolean {
     // Format sénégalais : +221 ou 77/78/76/70 suivi de 7 chiffres
-    const phoneRegex = /^(\+221|221)?(77|78|76|70)\d{7}$/
-    return phoneRegex.test(phone.replace(/\s/g, ''))
+    const phoneRegex = /^(\+221|221)?(77|78|76|70)\d{7}$/;
+    return phoneRegex.test(phone.replace(/\s/g, ''));
   }
 
   /**
@@ -53,8 +53,8 @@ export class AuthService {
     return {
       code: type,
       message: AuthErrorMessages[type],
-      details
-    }
+      details,
+    };
   }
 
   /**
@@ -67,35 +67,36 @@ export class AuthService {
         return {
           success: false,
           error: this.createError(AuthErrorType.INVALID_EMAIL),
-          requiresConfirmation: false
-        }
+          requiresConfirmation: false,
+        };
       }
 
       if (!this.validatePassword(data.password)) {
         return {
           success: false,
           error: this.createError(AuthErrorType.WEAK_PASSWORD),
-          requiresConfirmation: false
-        }
+          requiresConfirmation: false,
+        };
       }
 
       if (!this.validatePhone(data.telephone)) {
         return {
           success: false,
           error: this.createError(AuthErrorType.INVALID_PHONE),
-          requiresConfirmation: false
-        }
+          requiresConfirmation: false,
+        };
       }
 
       if (!data.nom.trim() || !data.prenom.trim()) {
         return {
           success: false,
           error: this.createError(AuthErrorType.UNKNOWN_ERROR, 'Nom et prénom requis'),
-          requiresConfirmation: false
-        }
+          requiresConfirmation: false,
+        };
       }
 
       // Inscription avec Supabase
+      // Le trigger handle_new_user_signup() créera automatiquement l'entrée dans 'users'
       const { data: authData, error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
@@ -104,10 +105,10 @@ export class AuthService {
             nom: data.nom.trim(),
             prenom: data.prenom.trim(),
             telephone: data.telephone.replace(/\s/g, ''),
-            role: data.role || 'acheteur'
-          }
-        }
-      })
+            // Note: Les rôles sont créés automatiquement par le trigger (farmer + distributor)
+          },
+        },
+      });
 
       if (error) {
         // Gestion des erreurs spécifiques
@@ -115,29 +116,29 @@ export class AuthService {
           return {
             success: false,
             error: this.createError(AuthErrorType.EMAIL_ALREADY_EXISTS),
-            requiresConfirmation: false
-          }
+            requiresConfirmation: false,
+          };
         }
 
         return {
           success: false,
           error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message),
-          requiresConfirmation: false
-        }
+          requiresConfirmation: false,
+        };
       }
 
       return {
         success: true,
         user: authData.user,
-        requiresConfirmation: !authData.session
-      }
+        requiresConfirmation: !authData.session,
+      };
     } catch (error) {
-      console.error('Erreur lors de l\'inscription:', error)
+      console.error("Erreur lors de l'inscription:", error);
       return {
         success: false,
         error: this.createError(AuthErrorType.NETWORK_ERROR),
-        requiresConfirmation: false
-      }
+        requiresConfirmation: false,
+      };
     }
   }
 
@@ -150,60 +151,60 @@ export class AuthService {
       if (!this.validateEmail(data.email)) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.INVALID_EMAIL)
-        }
+          error: this.createError(AuthErrorType.INVALID_EMAIL),
+        };
       }
 
       if (!data.password.trim()) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.INVALID_CREDENTIALS)
-        }
+          error: this.createError(AuthErrorType.INVALID_CREDENTIALS),
+        };
       }
 
       // Connexion avec Supabase
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
-        password: data.password
-      })
+        password: data.password,
+      });
 
       if (error) {
         // Gestion des erreurs spécifiques
         if (error.message.includes('Invalid login credentials')) {
           return {
             success: false,
-            error: this.createError(AuthErrorType.INVALID_CREDENTIALS)
-          }
+            error: this.createError(AuthErrorType.INVALID_CREDENTIALS),
+          };
         }
 
         if (error.message.includes('Email not confirmed')) {
           return {
             success: false,
-            error: this.createError(AuthErrorType.EMAIL_NOT_CONFIRMED)
-          }
+            error: this.createError(AuthErrorType.EMAIL_NOT_CONFIRMED),
+          };
         }
 
         return {
           success: false,
-          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message)
-        }
+          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message),
+        };
       }
 
       // Récupération du profil utilisateur
-      const profile = await this.getUserProfile(authData.user.id)
+      const profile = await this.getUserProfile(authData.user.id);
 
       return {
         success: true,
         user: authData.user,
         session: authData.session,
-        profile: profile || undefined
-      }
+        profile: profile || undefined,
+      };
     } catch (error) {
-      console.error('Erreur lors de la connexion:', error)
+      console.error('Erreur lors de la connexion:', error);
       return {
         success: false,
-        error: this.createError(AuthErrorType.NETWORK_ERROR)
-      }
+        error: this.createError(AuthErrorType.NETWORK_ERROR),
+      };
     }
   }
 
@@ -212,22 +213,22 @@ export class AuthService {
    */
   async signOut(): Promise<boolean> {
     try {
-      const { error } = await supabase.auth.signOut()
-      
+      const { error } = await supabase.auth.signOut();
+
       if (error) {
-        console.error('Erreur lors de la déconnexion:', error)
-        return false
+        console.error('Erreur lors de la déconnexion:', error);
+        return false;
       }
 
       // Nettoyage du sessionStorage
       if (typeof window !== 'undefined') {
-        sessionStorage.clear()
+        sessionStorage.clear();
       }
 
-      return true
+      return true;
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error)
-      return false
+      console.error('Erreur lors de la déconnexion:', error);
+      return false;
     }
   }
 
@@ -239,28 +240,28 @@ export class AuthService {
       if (!this.validateEmail(data.email)) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.INVALID_EMAIL)
-        }
+          error: this.createError(AuthErrorType.INVALID_EMAIL),
+        };
       }
 
       const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`
-      })
+        redirectTo: `${window.location.origin}/auth/reset-password`,
+      });
 
       if (error) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message)
-        }
+          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message),
+        };
       }
 
-      return { success: true }
+      return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la réinitialisation:', error)
+      console.error('Erreur lors de la réinitialisation:', error);
       return {
         success: false,
-        error: this.createError(AuthErrorType.NETWORK_ERROR)
-      }
+        error: this.createError(AuthErrorType.NETWORK_ERROR),
+      };
     }
   }
 
@@ -272,28 +273,28 @@ export class AuthService {
       if (!this.validatePassword(data.newPassword)) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.WEAK_PASSWORD)
-        }
+          error: this.createError(AuthErrorType.WEAK_PASSWORD),
+        };
       }
 
       const { error } = await supabase.auth.updateUser({
-        password: data.newPassword
-      })
+        password: data.newPassword,
+      });
 
       if (error) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message)
-        }
+          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message),
+        };
       }
 
-      return { success: true }
+      return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du mot de passe:', error)
+      console.error('Erreur lors de la mise à jour du mot de passe:', error);
       return {
         success: false,
-        error: this.createError(AuthErrorType.NETWORK_ERROR)
-      }
+        error: this.createError(AuthErrorType.NETWORK_ERROR),
+      };
     }
   }
 
@@ -302,40 +303,39 @@ export class AuthService {
    */
   async getSession() {
     try {
-      const { data: { session }, error } = await supabase.auth.getSession()
-      
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
       if (error) {
-        console.error('Erreur lors de la récupération de la session:', error)
-        return null
+        console.error('Erreur lors de la récupération de la session:', error);
+        return null;
       }
 
-      return session
+      return session;
     } catch (error) {
-      console.error('Erreur lors de la récupération de la session:', error)
-      return null
+      console.error('Erreur lors de la récupération de la session:', error);
+      return null;
     }
   }
 
   /**
-   * Récupération du profil utilisateur
+   * Récupération du profil utilisateur depuis la table 'users'
    */
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+      const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
 
       if (error) {
-        console.error('Erreur lors de la récupération du profil:', error)
-        return null
+        console.error('Erreur lors de la récupération du profil:', error);
+        return null;
       }
 
-      return data
+      return data;
     } catch (error) {
-      console.error('Erreur lors de la récupération du profil:', error)
-      return null
+      console.error('Erreur lors de la récupération du profil:', error);
+      return null;
     }
   }
 
@@ -348,37 +348,37 @@ export class AuthService {
       if (data.telephone && !this.validatePhone(data.telephone)) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.INVALID_PHONE)
-        }
+          error: this.createError(AuthErrorType.INVALID_PHONE),
+        };
       }
 
       const { data: profile, error } = await supabase
-        .from('profiles')
+        .from('users')
         .update({
           ...data,
-          updated_at: new Date().toISOString()
+          updated_at: new Date().toISOString(),
         })
         .eq('id', userId)
         .select()
-        .single()
+        .single();
 
       if (error) {
         return {
           success: false,
-          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message)
-        }
+          error: this.createError(AuthErrorType.UNKNOWN_ERROR, error.message),
+        };
       }
 
       return {
         success: true,
-        profile
-      }
+        profile,
+      };
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du profil:', error)
+      console.error('Erreur lors de la mise à jour du profil:', error);
       return {
         success: false,
-        error: this.createError(AuthErrorType.NETWORK_ERROR)
-      }
+        error: this.createError(AuthErrorType.NETWORK_ERROR),
+      };
     }
   }
 
@@ -387,15 +387,80 @@ export class AuthService {
    */
   async isAuthenticated(): Promise<boolean> {
     try {
-      const session = await this.getSession()
-      return !!session
+      const session = await this.getSession();
+      return !!session;
     } catch (error) {
-      console.error('Erreur lors de la vérification de l\'authentification:', error)
-      return false
+      console.error("Erreur lors de la vérification de l'authentification:", error);
+      return false;
+    }
+  }
+
+  /**
+   * Changer de rôle actif (farmer ↔ distributor)
+   */
+  async switchRole(userId: string, newRole: 'farmer' | 'distributor'): Promise<boolean> {
+    try {
+      // Vérifier d'abord que l'utilisateur a ce rôle dans sa liste de rôles
+      const profile = await this.getUserProfile(userId);
+      if (!profile) {
+        throw new Error('Utilisateur non trouvé');
+      }
+
+      // Type guard pour vérifier si profile a les propriétés nécessaires
+      const userProfile = profile as any;
+      if (!userProfile.roles || !Array.isArray(userProfile.roles)) {
+        throw new Error("Les rôles de l'utilisateur ne sont pas définis");
+      }
+
+      if (!userProfile.roles.includes(newRole)) {
+        throw new Error(`Le rôle ${newRole} n'est pas disponible pour cet utilisateur`);
+      }
+
+      // Mettre à jour le rôle actif
+      const { error } = await supabase
+        .from('users')
+        .update({
+          active_role: newRole,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId);
+
+      if (error) {
+        console.error('Erreur lors du changement de rôle:', error);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Erreur lors du changement de rôle:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Récupérer le rôle actif de l'utilisateur
+   */
+  async getActiveRole(userId: string): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('active_role')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Erreur lors de la récupération du rôle actif:', error);
+        return null;
+      }
+
+      return data?.active_role || null;
+    } catch (error) {
+      console.error('Erreur lors de la récupération du rôle actif:', error);
+      return null;
     }
   }
 }
 
 // Instance singleton du service d'authentification
-export const authService = new AuthService()
-export default authService
+export const authService = new AuthService();
+export default authService;

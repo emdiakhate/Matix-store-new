@@ -1,8 +1,8 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextRequest, NextResponse } from 'next/server'
-import { cookies } from 'next/headers'
-import { updateProfileSchema, validateData } from '@/lib/validation/schemas'
-import { securityLogger } from '@/lib/logging/securityLogger'
+import { createServerClient } from '@supabase/ssr';
+import { NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
+import { updateProfileSchema, validateData } from '@/lib/validation/schemas';
+import { securityLogger } from '@/lib/logging/securityLogger';
 
 /**
  * API Route pour mettre à jour le profil utilisateur
@@ -10,119 +10,122 @@ import { securityLogger } from '@/lib/logging/securityLogger'
  */
 export async function PUT(request: NextRequest) {
   try {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
 
     // Vérifier l'authentification
-    const cookieStore = cookies()
+    const cookieStore = cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name: string) {
-            return cookieStore.get(name)?.value
+            return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options })
+            cookieStore.set({ name, value, ...options });
           },
           remove(name: string, options: any) {
-            cookieStore.set({ name, value: '', ...options })
+            cookieStore.set({ name, value: '', ...options });
           },
         },
       }
-    )
+    );
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
     if (sessionError || !session) {
       securityLogger.log('UNAUTHORIZED_ACCESS', {
         endpoint: '/api/profile/update',
         ip,
         userAgent: request.headers.get('user-agent'),
-        reason: 'no_session'
-      })
-      
+        reason: 'no_session',
+      });
+
       return NextResponse.json(
         { error: 'Non authentifié', code: 'UNAUTHENTICATED' },
         { status: 401 }
-      )
+      );
     }
 
     // Valider les données
-    const body = await request.json()
-    const validation = validateData(updateProfileSchema, body)
-    
+    const body = await request.json();
+    const validation = validateData(updateProfileSchema, body);
+
     if (!validation.success) {
       securityLogger.log('VALIDATION_ERROR', {
         endpoint: '/api/profile/update',
         userId: session.user.id,
         ip,
         userAgent: request.headers.get('user-agent'),
-        errors: validation.errors
-      })
-      
+        errors: validation.errors,
+      });
+
       return NextResponse.json(
-        { 
-          error: 'Données invalides', 
+        {
+          error: 'Données invalides',
           details: validation.errors,
-          code: 'VALIDATION_ERROR' 
+          code: 'VALIDATION_ERROR',
         },
         { status: 400 }
-      )
+      );
     }
 
-    const updateData = validation.data!
+    const updateData = validation.data!;
 
-    // Vérifier que le profil existe
+    // Vérifier que le profil existe dans la table 'users'
     const { data: existingProfile, error: profileError } = await supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .eq('id', session.user.id)
-      .single()
+      .single();
 
     if (profileError || !existingProfile) {
       securityLogger.log('PROFILE_NOT_FOUND', {
         endpoint: '/api/profile/update',
         userId: session.user.id,
         ip,
-        userAgent: request.headers.get('user-agent')
-      })
-      
+        userAgent: request.headers.get('user-agent'),
+      });
+
       return NextResponse.json(
         { error: 'Profil non trouvé', code: 'PROFILE_NOT_FOUND' },
         { status: 404 }
-      )
+      );
     }
 
     // Préparer les données de mise à jour
     const finalUpdateData = {
       ...updateData,
-      updated_at: new Date().toISOString()
-    }
+      updated_at: new Date().toISOString(),
+    };
 
-    // Mettre à jour le profil
+    // Mettre à jour le profil dans la table 'users'
     const { data: updatedProfile, error: updateError } = await supabase
-      .from('profiles')
+      .from('users')
       .update(finalUpdateData)
       .eq('id', session.user.id)
       .select()
-      .single()
+      .single();
 
     if (updateError) {
-      console.error('Erreur lors de la mise à jour du profil:', updateError)
-      
+      console.error('Erreur lors de la mise à jour du profil:', updateError);
+
       securityLogger.log('DATABASE_ERROR', {
         endpoint: '/api/profile/update',
         userId: session.user.id,
         ip,
         userAgent: request.headers.get('user-agent'),
-        error: updateError.message
-      })
-      
+        error: updateError.message,
+      });
+
       return NextResponse.json(
         { error: 'Erreur lors de la mise à jour du profil', code: 'DATABASE_ERROR' },
         { status: 500 }
-      )
+      );
     }
 
     // Log de succès
@@ -131,29 +134,28 @@ export async function PUT(request: NextRequest) {
       userId: session.user.id,
       ip,
       userAgent: request.headers.get('user-agent'),
-      changes: Object.keys(finalUpdateData)
-    })
+      changes: Object.keys(finalUpdateData),
+    });
 
     return NextResponse.json({
       success: true,
       profile: updatedProfile,
-      message: 'Profil mis à jour avec succès'
-    })
-
+      message: 'Profil mis à jour avec succès',
+    });
   } catch (error) {
-    console.error('Erreur lors de la mise à jour du profil:', error)
-    
+    console.error('Erreur lors de la mise à jour du profil:', error);
+
     securityLogger.log('INTERNAL_ERROR', {
       endpoint: '/api/profile/update',
       ip: request.ip || 'unknown',
       userAgent: request.headers.get('user-agent'),
-      error: error instanceof Error ? error.message : 'Erreur inconnue'
-    })
-    
+      error: error instanceof Error ? error.message : 'Erreur inconnue',
+    });
+
     return NextResponse.json(
       { error: 'Erreur interne du serveur', code: 'INTERNAL_ERROR' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -162,69 +164,71 @@ export async function PUT(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown'
+    const ip = request.ip || request.headers.get('x-forwarded-for') || 'unknown';
 
     // Vérifier l'authentification
-    const cookieStore = cookies()
+    const cookieStore = cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           get(name: string) {
-            return cookieStore.get(name)?.value
+            return cookieStore.get(name)?.value;
           },
           set(name: string, value: string, options: any) {
-            cookieStore.set({ name, value, ...options })
+            cookieStore.set({ name, value, ...options });
           },
           remove(name: string, options: any) {
-            cookieStore.set({ name, value: '', ...options })
+            cookieStore.set({ name, value: '', ...options });
           },
         },
       }
-    )
+    );
 
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
+    const {
+      data: { session },
+      error: sessionError,
+    } = await supabase.auth.getSession();
+
     if (sessionError || !session) {
       return NextResponse.json(
         { error: 'Non authentifié', code: 'UNAUTHENTICATED' },
         { status: 401 }
-      )
+      );
     }
 
-    // Récupérer le profil
+    // Récupérer le profil depuis la table 'users'
     const { data: profile, error: profileError } = await supabase
-      .from('profiles')
+      .from('users')
       .select('*')
       .eq('id', session.user.id)
-      .single()
+      .single();
 
     if (profileError) {
-      console.error('Erreur lors de la récupération du profil:', profileError)
+      console.error('Erreur lors de la récupération du profil:', profileError);
       return NextResponse.json(
         { error: 'Erreur lors de la récupération du profil', code: 'DATABASE_ERROR' },
         { status: 500 }
-      )
+      );
     }
 
     if (!profile) {
       return NextResponse.json(
         { error: 'Profil non trouvé', code: 'PROFILE_NOT_FOUND' },
         { status: 404 }
-      )
+      );
     }
 
     return NextResponse.json({
       success: true,
-      profile
-    })
-
+      profile,
+    });
   } catch (error) {
-    console.error('Erreur lors de la récupération du profil:', error)
+    console.error('Erreur lors de la récupération du profil:', error);
     return NextResponse.json(
       { error: 'Erreur interne du serveur', code: 'INTERNAL_ERROR' },
       { status: 500 }
-    )
+    );
   }
 }
