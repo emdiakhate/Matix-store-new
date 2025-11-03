@@ -1,13 +1,12 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { X, User as UserIcon, Building, ShoppingCart } from 'lucide-react';
+import { X } from 'lucide-react';
 import { useAuth } from '@/hooks/useSupabase';
-import { userService } from '@/lib/services';
-import { UserType } from '@/lib/types';
+import { authService } from '@/services/auth/authService';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,53 +15,23 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) {
-  const { signUp, signIn } = useAuth();
+  const { signIn } = useAuth();
   const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const [selectedProfile, setSelectedProfile] = useState<'producer' | 'distributor' | 'client' | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    name: '',
-    phone: '',
-    city: '',
-    typeElevage: '',
-    entreprise: '',
-    ninea: '',
-    zone: '',
-    adresseLivraison: ''
+    nom: '',
+    prenom: '',
+    telephone: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  const profiles = [
-    {
-      id: 'producer' as const,
-      icon: <ShoppingCart className="h-8 w-8" />,
-      title: 'Producteur',
-      subtitle: 'Je vends mes produits avicoles',
-      color: 'bg-green-50 border-green-200 hover:bg-green-100'
-    },
-    {
-      id: 'distributor' as const,
-      icon: <Building className="h-8 w-8" />,
-      title: 'Distributeur',
-      subtitle: 'J\'achète en gros et revends',
-      color: 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-    },
-    {
-      id: 'client' as const,
-      icon: <UserIcon className="h-8 w-8" />,
-      title: 'Client Final',
-      subtitle: 'J\'achète pour ma consommation',
-      color: 'bg-purple-50 border-purple-200 hover:bg-purple-100'
-    }
-  ];
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
-    
+
     try {
       const { data, error } = await signIn(formData.email, formData.password);
       if (error) {
@@ -83,48 +52,51 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
     e.preventDefault();
     setError('');
     setLoading(true);
-    
-    if (!selectedProfile) {
-      setError('Veuillez sélectionner un profil');
-      setLoading(false);
-      return;
-    }
 
     try {
-      // Créer le compte Supabase
-      const { data, error } = await signUp(formData.email, formData.password, {
-        name: formData.name,
-        user_type: selectedProfile
-      });
-
-      if (error) {
-        setError(error.message);
+      // Validation basique
+      if (
+        !formData.email ||
+        !formData.password ||
+        !formData.nom ||
+        !formData.prenom ||
+        !formData.telephone
+      ) {
+        setError('Veuillez remplir tous les champs obligatoires');
+        setLoading(false);
         return;
       }
 
-      if (data.user) {
-        // Créer le profil utilisateur dans notre table
-        const userData = {
-          user_type: selectedProfile as UserType,
-          subscription_status: 'inactive' as const,
-          is_verified: false,
-          business_name: selectedProfile === 'distributor' ? formData.entreprise : undefined,
-          business_license: selectedProfile === 'distributor' ? formData.ninea : undefined,
-        };
+      if (formData.password.length < 8) {
+        setError('Le mot de passe doit contenir au moins 8 caractères');
+        setLoading(false);
+        return;
+      }
 
-        const { error: profileError } = await userService.createProfile(data.user.id, userData);
-        
-        if (profileError) {
-          setError('Erreur lors de la création du profil');
-          return;
-        }
+      // Utiliser authService.signUp() qui gère automatiquement la création dans 'users'
+      const result = await authService.signUp({
+        email: formData.email,
+        password: formData.password,
+        nom: formData.nom.trim(),
+        prenom: formData.prenom.trim(),
+        telephone: formData.telephone.replace(/\s/g, ''),
+      });
 
-        onLogin(data.user);
+      if (!result.success) {
+        setError(result.error?.message || "Erreur lors de l'inscription");
+        setLoading(false);
+        return;
+      }
+
+      if (result.user) {
+        // Succès - l'utilisateur est créé automatiquement dans 'users' par le trigger
+        onLogin(result.user);
         onClose();
         resetForm();
       }
-    } catch (err) {
-      setError('Une erreur est survenue');
+    } catch (err: any) {
+      console.error('Erreur inscription:', err);
+      setError(err.message || "Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
       setLoading(false);
     }
@@ -134,23 +106,17 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
     setFormData({
       email: '',
       password: '',
-      name: '',
-      phone: '',
-      city: '',
-      typeElevage: '',
-      entreprise: '',
-      ninea: '',
-      zone: '',
-      adresseLivraison: ''
+      nom: '',
+      prenom: '',
+      telephone: '',
     });
-    setSelectedProfile(null);
     setError('');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -191,32 +157,34 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
           </Button>
         </div>
 
-        {activeTab === 'register' && !selectedProfile && (
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold mb-4">Choisissez votre profil</h3>
-            <div className="space-y-3">
-              {profiles.map((profile) => (
-                <div
-                  key={profile.id}
-                  className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${profile.color}`}
-                  onClick={() => setSelectedProfile(profile.id)}
-                >
-                  <div className="flex items-center space-x-3">
-                    {profile.icon}
-                    <div>
-                      <h4 className="font-semibold">{profile.title}</h4>
-                      <p className="text-sm text-gray-600">{profile.subtitle}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-600 text-sm">{error}</p>
+          </div>
+        )}
+
+        {/* Message informatif sur les rôles (uniquement pour l'inscription) */}
+        {activeTab === 'register' && (
+          <div className="mb-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+            <div className="flex items-start">
+              <div className="flex-shrink-0">
+                <svg className="h-5 w-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-blue-700">
+                  <strong>2 profils en 1 compte !</strong>
+                  <br />
+                  Vous aurez accès aux profils <strong>Producteur</strong> et{' '}
+                  <strong>Distributeur</strong>. Basculez entre les deux dans votre espace.
+                </p>
+              </div>
+            </div>
           </div>
         )}
 
@@ -225,15 +193,41 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
             <>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Nom complet
+                  Prénom <span className="text-red-500">*</span>
                 </label>
                 <Input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="prenom"
+                  value={formData.prenom}
                   onChange={handleInputChange}
                   required
-                  placeholder="Votre nom complet"
+                  placeholder="Amadou"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nom <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="text"
+                  name="nom"
+                  value={formData.nom}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="Diop"
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Téléphone <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  type="tel"
+                  name="telephone"
+                  value={formData.telephone}
+                  onChange={handleInputChange}
+                  required
+                  placeholder="+221771234567"
                 />
               </div>
             </>
@@ -241,7 +235,7 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
+              Email <span className="text-red-500">*</span>
             </label>
             <Input
               type="email"
@@ -255,7 +249,7 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mot de passe
+              Mot de passe <span className="text-red-500">*</span>
             </label>
             <Input
               type="password"
@@ -263,128 +257,49 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
               value={formData.password}
               onChange={handleInputChange}
               required
-              placeholder="Votre mot de passe"
+              minLength={8}
+              placeholder="Minimum 8 caractères"
             />
+            {activeTab === 'register' && (
+              <p className="text-xs text-gray-500 mt-1">Minimum 8 caractères</p>
+            )}
           </div>
 
-          {activeTab === 'register' && selectedProfile && (
-            <>
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Téléphone
-                </label>
-                <Input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="Votre numéro de téléphone"
-                />
-              </div>
-
-              {selectedProfile === 'producer' && (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Ville
-                    </label>
-                    <Input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      placeholder="Votre ville"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Type d'élevage
-                    </label>
-                    <Input
-                      type="text"
-                      name="typeElevage"
-                      value={formData.typeElevage}
-                      onChange={handleInputChange}
-                      placeholder="Poulets, œufs, etc."
-                    />
-                  </div>
-                </>
-              )}
-
-              {selectedProfile === 'distributor' && (
-                <>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Nom de l'entreprise
-                    </label>
-                    <Input
-                      type="text"
-                      name="entreprise"
-                      value={formData.entreprise}
-                      onChange={handleInputChange}
-                      placeholder="Nom de votre entreprise"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      NINEA
-                    </label>
-                    <Input
-                      type="text"
-                      name="ninea"
-                      value={formData.ninea}
-                      onChange={handleInputChange}
-                      placeholder="Numéro NINEA"
-                    />
-                  </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Zone de livraison
-                    </label>
-                    <Input
-                      type="text"
-                      name="zone"
-                      value={formData.zone}
-                      onChange={handleInputChange}
-                      placeholder="Zone de livraison"
-                    />
-                  </div>
-                </>
-              )}
-
-              {selectedProfile === 'client' && (
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Adresse de livraison
-                  </label>
-                  <Input
-                    type="text"
-                    name="adresseLivraison"
-                    value={formData.adresseLivraison}
-                    onChange={handleInputChange}
-                    placeholder="Votre adresse de livraison"
-                  />
-                </div>
-              )}
-            </>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={loading}
-          >
-            {loading ? 'Chargement...' : (activeTab === 'login' ? 'Se connecter' : 'S\'inscrire')}
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? (
+              <span className="flex items-center justify-center">
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                {activeTab === 'login' ? 'Connexion...' : 'Inscription...'}
+              </span>
+            ) : activeTab === 'login' ? (
+              'Se connecter'
+            ) : (
+              "S'inscrire"
+            )}
           </Button>
         </form>
 
         {activeTab === 'login' && (
           <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              onClick={() => setActiveTab('register')}
-              className="text-sm"
-            >
+            <Button variant="link" onClick={() => setActiveTab('register')} className="text-sm">
               Pas encore de compte ? S'inscrire
             </Button>
           </div>
@@ -392,11 +307,7 @@ export default function AuthModal({ isOpen, onClose, onLogin }: AuthModalProps) 
 
         {activeTab === 'register' && (
           <div className="mt-4 text-center">
-            <Button
-              variant="link"
-              onClick={() => setActiveTab('login')}
-              className="text-sm"
-            >
+            <Button variant="link" onClick={() => setActiveTab('login')} className="text-sm">
               Déjà un compte ? Se connecter
             </Button>
           </div>
