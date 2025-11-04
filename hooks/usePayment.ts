@@ -7,6 +7,7 @@ export interface PaymentData {
   customerPhone: string;
   customerName: string;
   orderId?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface PaymentResult {
@@ -70,6 +71,7 @@ export function usePayment() {
           customerEmail: data.customerEmail,
           customerPhone: data.customerPhone,
           customerName: data.customerName,
+          metadata: data.metadata,
         }),
       });
 

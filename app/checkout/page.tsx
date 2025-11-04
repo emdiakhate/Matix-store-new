@@ -1,37 +1,53 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { ArrowLeft, Minus, Plus, Trash2, Truck, Phone, Shield, Award } from 'lucide-react';
+import { ArrowLeft, Minus, Plus, Trash2, Truck, Phone, Shield, Award, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { usePayment } from '@/hooks/usePayment';
 
 export default function CheckoutPage() {
   const [useDefaultAddress, setUseDefaultAddress] = useState(true);
   const [shippingMethod, setShippingMethod] = useState('ups');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [couponCode, setCouponCode] = useState('');
+
+  // Form fields state
+  const [firstName, setFirstName] = useState('Amadou');
+  const [lastName, setLastName] = useState('Diallo');
+  const [email, setEmail] = useState('amadou@example.com');
+  const [phone, setPhone] = useState('+221771234567');
+  const [address, setAddress] = useState('Marché Colobane, Dakar');
+  const [city, setCity] = useState('Dakar');
+  const [country, setCountry] = useState('Sénégal');
+  const [postalCode, setPostalCode] = useState('10200');
+
   const [cartItems, setCartItems] = useState([
     {
       id: 1,
-      name: "Poulet Fermier Race Locale",
+      name: 'Poulet Fermier Race Locale',
       price: 25000,
       quantity: 1,
-      image: "https://images.pexels.com/photos/1556909/pexels-photo-1556909.jpeg?auto=compress&cs=tinysrgb&w=120"
+      image:
+        'https://images.pexels.com/photos/1556909/pexels-photo-1556909.jpeg?auto=compress&cs=tinysrgb&w=120',
     },
     {
       id: 2,
-      name: "Poussins Pondeuses ISA",
+      name: 'Poussins Pondeuses ISA',
       price: 2500,
       quantity: 10,
-      image: "https://images.pexels.com/photos/1267697/pexels-photo-1267697.jpeg?auto=compress&cs=tinysrgb&w=120"
-    }
+      image:
+        'https://images.pexels.com/photos/1267697/pexels-photo-1267697.jpeg?auto=compress&cs=tinysrgb&w=120',
+    },
   ]);
 
+  const { initiatePayment, redirectToPayment, loading, error } = usePayment();
+
   const shippingOptions = [
-    { id: 'ups', name: 'UPS', delivery: 'Livraison Aujourd\'hui', cost: 2500, icon: '📦' },
-    { id: 'dhl', name: 'DHL', delivery: 'Livraison 2 Jours', cost: 1500, icon: '📦' }
+    { id: 'ups', name: 'UPS', delivery: "Livraison Aujourd'hui", cost: 2500, icon: '📦' },
+    { id: 'dhl', name: 'DHL', delivery: 'Livraison 2 Jours', cost: 1500, icon: '📦' },
   ];
 
   const paymentMethods = [
@@ -39,10 +55,10 @@ export default function CheckoutPage() {
     { id: 'card', name: 'Carte bancaire', icon: '💳', color: '#6B7280' },
     { id: 'orange', name: 'Orange Money', icon: '📱', color: '#FF6600' },
     { id: 'wave', name: 'Wave', icon: '📱', color: '#1E40AF' },
-    { id: 'free', name: 'Free Money', icon: '📱', color: '#10B981' }
+    { id: 'free', name: 'Free Money', icon: '📱', color: '#10B981' },
   ];
 
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shippingCost = shippingOptions.find(option => option.id === shippingMethod)?.cost || 0;
   const discount = 0;
   const totalCost = subtotal + shippingCost - discount;
@@ -50,14 +66,71 @@ export default function CheckoutPage() {
   const updateQuantity = (id: number, newQuantity: number) => {
     if (newQuantity < 1) return;
     setCartItems(items =>
-      items.map(item =>
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
+      items.map(item => (item.id === id ? { ...item, quantity: newQuantity } : item))
     );
   };
 
   const removeItem = (id: number) => {
     setCartItems(items => items.filter(item => item.id !== id));
+  };
+
+  const handleCheckout = async () => {
+    // Validation des champs requis
+    if (!firstName || !lastName || !email || !phone) {
+      alert('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      alert('Votre panier est vide');
+      return;
+    }
+
+    // Seuls les paiements en ligne nécessitent Bictorys
+    if (paymentMethod === 'cash') {
+      alert('Le paiement en espèces sera effectué à la livraison');
+      // TODO: Créer la commande sans paiement
+      return;
+    }
+
+    try {
+      // Préparer les données de paiement
+      const paymentData = {
+        amount: totalCost,
+        customerEmail: email,
+        customerPhone: phone,
+        customerName: `${firstName} ${lastName}`,
+        metadata: {
+          cart_items: cartItems.map(item => ({
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          shipping_method: shippingMethod,
+          payment_method: paymentMethod,
+          shipping_address: {
+            address,
+            city,
+            country,
+            postal_code: postalCode,
+          },
+        },
+      };
+
+      // Initier le paiement
+      const result = await initiatePayment(paymentData);
+
+      if (result?.payment_url) {
+        // Rediriger vers la page de paiement Bictorys
+        redirectToPayment(result.payment_url);
+      } else {
+        alert("Erreur lors de l'initiation du paiement");
+      }
+    } catch (err) {
+      console.error('Erreur de paiement:', err);
+      alert('Une erreur est survenue lors du paiement');
+    }
   };
 
   return (
@@ -71,11 +144,17 @@ export default function CheckoutPage() {
             <span className="text-green-600 font-semibold">+221 77 123 45 67</span>
           </div>
           <div className="hidden md:flex items-center gap-4 text-sm">
-            <a href="#" className="hover:text-green-600">À Propos</a>
+            <a href="#" className="hover:text-green-600">
+              À Propos
+            </a>
             <span className="text-gray-400">|</span>
-            <a href="#" className="hover:text-green-600">Nous Contacter</a>
+            <a href="#" className="hover:text-green-600">
+              Nous Contacter
+            </a>
             <span className="text-gray-400">|</span>
-            <a href="#" className="hover:text-green-600">Mon Compte</a>
+            <a href="#" className="hover:text-green-600">
+              Mon Compte
+            </a>
             <span className="text-gray-400">|</span>
             <a href="#" className="hover:text-green-600 flex items-center gap-1">
               🔒 Déconnexion
@@ -90,7 +169,7 @@ export default function CheckoutPage() {
             <Link href="/" className="flex items-center">
               <div className="bg-white text-green-500 p-2 rounded-lg mr-3">
                 <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/>
+                  <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
                 </svg>
               </div>
               <div>
@@ -105,7 +184,10 @@ export default function CheckoutPage() {
       <div className="bg-white border-b border-gray-200 py-3">
         <div className="container mx-auto px-4">
           <nav className="flex items-center space-x-8">
-            <Link href="/" className="text-gray-700 hover:text-green-600 font-medium flex items-center gap-2">
+            <Link
+              href="/"
+              className="text-gray-700 hover:text-green-600 font-medium flex items-center gap-2"
+            >
               <ArrowLeft className="h-4 w-4" />
               Retour aux achats
             </Link>
@@ -120,7 +202,9 @@ export default function CheckoutPage() {
             {/* Toggle Adresse par défaut */}
             <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
               <div className="flex items-center justify-between">
-                <span className="text-gray-700 font-medium">Utiliser l'Adresse de Livraison par Défaut</span>
+                <span className="text-gray-700 font-medium">
+                  Utiliser l'Adresse de Livraison par Défaut
+                </span>
                 <div className="flex items-center">
                   <span className="mr-2 text-sm text-gray-600">Oui</span>
                   <button
@@ -144,20 +228,46 @@ export default function CheckoutPage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-4">01. Détails Personnels</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Prénom</label>
-                  <Input defaultValue="Amadou" className="w-full" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Prénom *</label>
+                  <Input
+                    value={firstName}
+                    onChange={e => setFirstName(e.target.value)}
+                    className="w-full"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom</label>
-                  <Input defaultValue="Diallo" className="w-full" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Nom *</label>
+                  <Input
+                    value={lastName}
+                    onChange={e => setLastName(e.target.value)}
+                    className="w-full"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Adresse Email</label>
-                  <Input defaultValue="amadou@example.com" className="w-full" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Adresse Email *
+                  </label>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    className="w-full"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Numéro de Téléphone</label>
-                  <Input defaultValue="+221771234567" className="w-full" />
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Numéro de Téléphone *
+                  </label>
+                  <Input
+                    type="tel"
+                    value={phone}
+                    onChange={e => setPhone(e.target.value)}
+                    className="w-full"
+                    required
+                  />
                 </div>
               </div>
             </div>
@@ -168,20 +278,38 @@ export default function CheckoutPage() {
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Adresse</label>
-                  <Input defaultValue="Marché Colobane, Dakar" className="w-full" />
+                  <Input
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    className="w-full"
+                  />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Ville</label>
-                    <Input defaultValue="Dakar" className="w-full" />
+                    <Input
+                      value={city}
+                      onChange={e => setCity(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Pays</label>
-                    <Input defaultValue="Sénégal" className="w-full" />
+                    <Input
+                      value={country}
+                      onChange={e => setCountry(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Code Postal</label>
-                    <Input defaultValue="10200" className="w-full" />
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Code Postal
+                    </label>
+                    <Input
+                      value={postalCode}
+                      onChange={e => setPostalCode(e.target.value)}
+                      className="w-full"
+                    />
                   </div>
                 </div>
               </div>
@@ -191,7 +319,7 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
               <h4 className="font-semibold text-gray-900 mb-4">Coût de Livraison</h4>
               <div className="space-y-3">
-                {shippingOptions.map((option) => (
+                {shippingOptions.map(option => (
                   <div key={option.id} className="flex items-center p-3 border rounded-lg">
                     <input
                       type="radio"
@@ -199,7 +327,7 @@ export default function CheckoutPage() {
                       name="shipping"
                       value={option.id}
                       checked={shippingMethod === option.id}
-                      onChange={(e) => setShippingMethod(e.target.value)}
+                      onChange={e => setShippingMethod(e.target.value)}
                       className="mr-3"
                     />
                     <div className="flex items-center flex-1">
@@ -219,7 +347,7 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">03. Méthode de Paiement</h3>
               <div className="space-y-3">
-                {paymentMethods.map((method) => (
+                {paymentMethods.map(method => (
                   <div key={method.id} className="flex items-center p-3 border rounded-lg">
                     <input
                       type="radio"
@@ -227,25 +355,53 @@ export default function CheckoutPage() {
                       name="payment"
                       value={method.id}
                       checked={paymentMethod === method.id}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      onChange={e => setPaymentMethod(e.target.value)}
                       className="mr-3"
                     />
                     <div className="flex items-center">
-                      <span className="text-xl mr-3" style={{ color: method.color }}>{method.icon}</span>
-                      <span className="font-medium" style={{ color: method.color }}>{method.name}</span>
+                      <span className="text-xl mr-3" style={{ color: method.color }}>
+                        {method.icon}
+                      </span>
+                      <span className="font-medium" style={{ color: method.color }}>
+                        {method.name}
+                      </span>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
 
+            {/* Message d'erreur */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4">
+                <p className="font-medium">Erreur de paiement</p>
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+
             {/* Boutons Action */}
             <div className="flex gap-4">
-              <Button variant="outline" className="flex-1 border-purple-500 text-purple-500 hover:bg-purple-50">
-                Continuer les Achats
-              </Button>
-              <Button className="flex-1 bg-green-500 hover:bg-green-600 text-white">
-                Confirmer la Commande →
+              <Link href="/" className="flex-1">
+                <Button
+                  variant="outline"
+                  className="w-full border-purple-500 text-purple-500 hover:bg-purple-50"
+                >
+                  Continuer les Achats
+                </Button>
+              </Link>
+              <Button
+                onClick={handleCheckout}
+                disabled={loading || cartItems.length === 0}
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Traitement...
+                  </>
+                ) : (
+                  'Confirmer la Commande →'
+                )}
               </Button>
             </div>
           </div>
@@ -254,10 +410,10 @@ export default function CheckoutPage() {
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg p-6 shadow-sm sticky top-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Résumé de Commande</h3>
-              
+
               {/* Produits */}
               <div className="space-y-4 mb-6">
-                {cartItems.map((item) => (
+                {cartItems.map(item => (
                   <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                     <img
                       src={item.image}
@@ -266,8 +422,12 @@ export default function CheckoutPage() {
                     />
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-sm line-clamp-1">{item.name}</h4>
-                      <p className="text-xs text-gray-500">Prix Unitaire {item.price.toLocaleString()} FCFA</p>
-                      <p className="font-bold text-green-600">{(item.price * item.quantity).toLocaleString()} FCFA</p>
+                      <p className="text-xs text-gray-500">
+                        Prix Unitaire {item.price.toLocaleString()} FCFA
+                      </p>
+                      <p className="font-bold text-green-600">
+                        {(item.price * item.quantity).toLocaleString()} FCFA
+                      </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
@@ -302,7 +462,7 @@ export default function CheckoutPage() {
                   <Input
                     placeholder="Code Coupon"
                     value={couponCode}
-                    onChange={(e) => setCouponCode(e.target.value)}
+                    onChange={e => setCouponCode(e.target.value)}
                     className="flex-1"
                   />
                   <Button className="bg-green-500 hover:bg-green-600 text-white px-6">
@@ -323,7 +483,9 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span>Réduction</span>
-                  <span className="font-semibold text-orange-500">{discount.toLocaleString()} FCFA</span>
+                  <span className="font-semibold text-orange-500">
+                    {discount.toLocaleString()} FCFA
+                  </span>
                 </div>
                 <div className="flex justify-between text-lg font-bold border-t pt-3">
                   <span>COÛT TOTAL</span>
@@ -343,17 +505,25 @@ export default function CheckoutPage() {
                 Obtenez Vos Besoins Quotidiens Depuis Notre Boutique Matix
               </h3>
               <p className="text-gray-600 mb-6">
-                Il y a de nombreux produits que vous trouverez dans notre boutique. 
-                Choisissez votre produit nécessaire quotidien dans notre boutique Matix 
-                et obtenez des offres spéciales.
+                Il y a de nombreux produits que vous trouverez dans notre boutique. Choisissez votre
+                produit nécessaire quotidien dans notre boutique Matix et obtenez des offres
+                spéciales.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Button className="bg-black hover:bg-gray-800 text-white">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg" alt="Google Play" className="h-6 mr-2" />
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/7/78/Google_Play_Store_badge_EN.svg"
+                    alt="Google Play"
+                    className="h-6 mr-2"
+                  />
                   Google Play
                 </Button>
                 <Button className="bg-black hover:bg-gray-800 text-white">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg" alt="App Store" className="h-6 mr-2" />
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/3/3c/Download_on_the_App_Store_Badge.svg"
+                    alt="App Store"
+                    className="h-6 mr-2"
+                  />
                   App Store
                 </Button>
               </div>
