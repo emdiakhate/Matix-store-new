@@ -35,17 +35,19 @@ export const useProducerVerification = (userId?: string) => {
 
       // Mode production : vérifier en base de données
       const { data, error: dbError } = await userService.getFarmLocation(userId);
-      
+
       if (dbError) {
         throw new Error(dbError.message);
       }
 
       // Vérifier si les coordonnées GPS existent
-      const hasCoordinates = data && 
-        data.farm_latitude !== null && 
+      const hasCoordinates = !!(
+        data &&
+        data.farm_latitude !== null &&
         data.farm_longitude !== null &&
         data.farm_latitude !== undefined &&
-        data.farm_longitude !== undefined;
+        data.farm_longitude !== undefined
+      );
 
       setIsVerified(hasCoordinates);
     } catch (err: any) {
@@ -82,7 +84,7 @@ export const useProducerVerification = (userId?: string) => {
 
       // Écouter les changements de localStorage
       window.addEventListener('storage', handleStorageChange);
-      
+
       // Écouter l'événement personnalisé de mise à jour de la ferme
       window.addEventListener('farmLocationUpdated', handleFarmLocationUpdate);
 
@@ -97,6 +99,6 @@ export const useProducerVerification = (userId?: string) => {
     isVerified,
     isLoading,
     error,
-    refreshVerification
+    refreshVerification,
   };
 };

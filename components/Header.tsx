@@ -1,8 +1,28 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Search, Heart, ShoppingCart, User as UserIcon, Menu, X, Mic, Bell, ChevronDown, BarChart3, Package, Edit, Lock, TrendingUp, Store, Users, FileText, DollarSign, Home } from 'lucide-react';
+import {
+  Search,
+  Heart,
+  ShoppingCart,
+  User as UserIcon,
+  Menu,
+  X,
+  Mic,
+  Bell,
+  ChevronDown,
+  BarChart3,
+  Package,
+  Edit,
+  Lock,
+  TrendingUp,
+  Store,
+  Users,
+  FileText,
+  DollarSign,
+  Home,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import CartSidebar from './CartSidebar';
@@ -53,19 +73,27 @@ export default function Header() {
 
   const getProfileColor = (userType: string) => {
     switch (userType) {
-      case 'producer': return 'text-green-600';
-      case 'distributor': return 'text-blue-600';
-      case 'client': return 'text-purple-600';
-      default: return 'text-gray-600';
+      case 'producer':
+        return 'text-green-600';
+      case 'distributor':
+        return 'text-blue-600';
+      case 'client':
+        return 'text-purple-600';
+      default:
+        return 'text-gray-600';
     }
   };
 
   const getProfileLabel = (userType: string) => {
     switch (userType) {
-      case 'producer': return 'Producteur';
-      case 'distributor': return 'Distributeur';
-      case 'client': return 'Client';
-      default: return '';
+      case 'producer':
+        return 'Producteur';
+      case 'distributor':
+        return 'Distributeur';
+      case 'client':
+        return 'Client';
+      default:
+        return '';
     }
   };
 
@@ -76,7 +104,7 @@ export default function Header() {
         { href: '/categories', label: 'Catégories' },
         { href: '/marques', label: 'Marques Distributeurs' },
         { href: '/offres', label: 'Offres', isSpecial: true },
-        { href: '/annonces', label: 'Annonces', isSpecial: true }
+        { href: '/annonces', label: 'Annonces', isSpecial: true },
       ];
     }
 
@@ -86,7 +114,7 @@ export default function Header() {
           { href: '/', label: 'Accueil' },
           { href: '/dashboard/products', label: 'Mes Produits' },
           { href: '/dashboard/orders', label: 'Commandes' },
-          { href: '/dashboard/stats', label: 'Statistiques' }
+          { href: '/dashboard/stats', label: 'Statistiques' },
         ];
       case 'distributor':
         return [
@@ -94,7 +122,7 @@ export default function Header() {
           { href: '/dashboard/distributor/search', label: 'Producteurs' },
           { href: '/dashboard/distributor/clients', label: 'Clients' },
           { href: '/dashboard/distributor/brand', label: 'Ma Marque' },
-          { href: '/dashboard/distributor/alerts', label: 'Alertes' }
+          { href: '/dashboard/distributor/alerts', label: 'Alertes' },
         ];
       case 'client':
         return [
@@ -102,7 +130,7 @@ export default function Header() {
           { href: '/categories', label: 'Catégories' },
           { href: '/dashboard/client/orders', label: 'Mes Commandes' },
           { href: '/dashboard/client/requests', label: 'Demandes' },
-          { href: '/dashboard/client/favorites', label: 'Favoris' }
+          { href: '/dashboard/client/favorites', label: 'Favoris' },
         ];
       default:
         return [];
@@ -120,7 +148,7 @@ export default function Header() {
           { href: '/dashboard/products', label: 'Mes Produits', icon: Package },
           { href: '/dashboard/orders', label: 'Commandes', icon: FileText },
           { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
-          { href: '/dashboard/location', label: 'Ma Zone', icon: TrendingUp }
+          { href: '/dashboard/location', label: 'Ma Zone', icon: TrendingUp },
         ];
       case 'distributor':
         return [
@@ -128,7 +156,7 @@ export default function Header() {
           { href: '/dashboard/distributor/search', label: 'Rechercher', icon: Search },
           { href: '/dashboard/distributor/clients', label: 'Mes Clients', icon: Users },
           { href: '/dashboard/distributor/brand', label: 'Ma Marque', icon: Store },
-          { href: '/dashboard/distributor/alerts', label: 'Alertes', icon: Bell }
+          { href: '/dashboard/distributor/alerts', label: 'Alertes', icon: Bell },
         ];
       case 'client':
         return [
@@ -136,7 +164,7 @@ export default function Header() {
           { href: '/dashboard/client/orders', label: 'Mes Commandes', icon: FileText },
           { href: '/dashboard/client/requests', label: 'Mes Demandes', icon: Package },
           { href: '/dashboard/client/favorites', label: 'Favoris', icon: Heart },
-          { href: '/dashboard/client/reviews', label: 'Avis', icon: Edit }
+          { href: '/dashboard/client/reviews', label: 'Avis', icon: Edit },
         ];
       default:
         return [];
@@ -176,7 +204,7 @@ export default function Header() {
 
             {/* Navigation Desktop */}
             <nav className="hidden md:flex space-x-8">
-              {getNavigationItems().map((item) => (
+              {getNavigationItems().map(item => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -231,7 +259,7 @@ export default function Header() {
                   >
                     <UserIcon className="h-5 w-5" />
                     <span className="hidden md:block text-sm">
-                      {userProfile.business_name || user.email}
+                      {userProfile.business_name || user?.email || 'Utilisateur'}
                     </span>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
@@ -241,7 +269,7 @@ export default function Header() {
                       {/* Profile Header */}
                       <div className="px-4 py-2 border-b">
                         <p className="text-sm font-medium text-gray-900">
-                          {userProfile.business_name || user.email}
+                          {userProfile.business_name || user?.email || 'Utilisateur'}
                         </p>
                         <p className={`text-xs ${getProfileColor(userProfile.user_type)}`}>
                           {getProfileLabel(userProfile.user_type)}
@@ -249,7 +277,7 @@ export default function Header() {
                       </div>
 
                       {/* Menu Items */}
-                      {getProfileMenuItems().map((item) => (
+                      {getProfileMenuItems().map(item => (
                         <Link
                           key={item.href}
                           href={item.href}
@@ -297,7 +325,7 @@ export default function Header() {
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t">
               <nav className="space-y-2">
-                {getNavigationItems().map((item) => (
+                {getNavigationItems().map(item => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -325,10 +353,7 @@ export default function Header() {
       />
 
       {/* Cart Sidebar */}
-      <CartSidebar
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-      />
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </>
   );
 }

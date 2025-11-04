@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,15 +6,8 @@ import { Card } from '@/components/ui/card';
 import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import ReviewModal from '@/components/ReviewModal';
 import StarRatingInput from '@/components/ui/StarRatingInput';
-import Toast, { useToast } from '@/components/ui/Toast';
-import { 
-  Star,
-  Edit,
-  Calendar,
-  Image as ImageIcon,
-  Package,
-  MessageSquare
-} from 'lucide-react';
+import Toast, { useToast } from '@/components/ui/toast';
+import { Star, Edit, Calendar, Image as ImageIcon, Package, MessageSquare } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -55,27 +48,30 @@ export default function MyReviewsPage() {
     {
       id: 'prod1',
       name: 'Poulets fermiers bio',
-      image: 'https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300',
+      image:
+        'https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300',
       price: 4500,
       producer: 'Ferme Diallo',
-      purchaseDate: '2024-09-15'
+      purchaseDate: '2024-09-15',
     },
     {
       id: 'prod2',
       name: 'Œufs frais x30',
-      image: 'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=300',
+      image:
+        'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=300',
       price: 2500,
       producer: 'Ferme Sall',
-      purchaseDate: '2024-09-12'
+      purchaseDate: '2024-09-12',
     },
     {
       id: 'prod3',
       name: 'Aliment ponte 25kg',
-      image: 'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=300',
+      image:
+        'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=300',
       price: 18500,
       producer: 'Ferme Ba',
-      purchaseDate: '2024-09-10'
-    }
+      purchaseDate: '2024-09-10',
+    },
   ]);
 
   const [reviews, setReviews] = useState<ProductReview[]>([
@@ -84,34 +80,38 @@ export default function MyReviewsPage() {
       productId: 'prod4',
       rating: 5,
       comment: 'Excellent produit, très frais et de qualité. Je recommande vivement ce producteur.',
-      image: 'https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300',
+      image:
+        'https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300',
       created_at: '2024-09-08T10:00:00Z',
       updated_at: '2024-09-08T10:00:00Z',
       product: {
         id: 'prod4',
         name: 'Poussins x100',
-        image: 'https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300',
+        image:
+          'https://images.pexels.com/photos/106343/pexels-photo-106343.jpeg?auto=compress&cs=tinysrgb&w=300',
         price: 8500,
         producer: 'Ferme Ndiaye',
-        purchaseDate: '2024-09-05'
-      }
+        purchaseDate: '2024-09-05',
+      },
     },
     {
       id: 'rev2',
       productId: 'prod5',
       rating: 4,
-      comment: 'Bon produit, livraison rapide. Petit bémol sur l\'emballage mais le contenu est parfait.',
+      comment:
+        "Bon produit, livraison rapide. Petit bémol sur l'emballage mais le contenu est parfait.",
       created_at: '2024-09-03T14:30:00Z',
       updated_at: '2024-09-03T14:30:00Z',
       product: {
         id: 'prod5',
         name: 'Mangeoires automatiques',
-        image: 'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=300',
+        image:
+          'https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=300',
         price: 15500,
         producer: 'Ferme Fall',
-        purchaseDate: '2024-09-01'
-      }
-    }
+        purchaseDate: '2024-09-01',
+      },
+    },
   ]);
 
   useEffect(() => {
@@ -142,18 +142,18 @@ export default function MyReviewsPage() {
     try {
       if (selectedReview) {
         // Modifier un avis existant
-        console.log('Modification de l\'avis:', selectedReview.id, reviewData);
+        console.log("Modification de l'avis:", selectedReview.id, reviewData);
         // TODO: Appel API pour modifier l'avis
       } else {
         // Créer un nouvel avis
-        console.log('Création d\'un nouvel avis pour:', selectedProduct?.id, reviewData);
+        console.log("Création d'un nouvel avis pour:", selectedProduct?.id, reviewData);
         // TODO: Appel API pour créer l'avis
         // Retirer le produit de la liste des produits en attente
         if (selectedProduct) {
           setPendingProducts(prev => prev.filter(p => p.id !== selectedProduct.id));
         }
       }
-      
+
       // Afficher un toast de succès
       showSuccess(
         selectedReview ? 'Avis modifié avec succès !' : 'Avis publié avec succès !',
@@ -161,10 +161,7 @@ export default function MyReviewsPage() {
       );
     } catch (error) {
       console.error('Erreur lors de la soumission:', error);
-      showError(
-        'Erreur lors de la soumission',
-        'Une erreur est survenue. Veuillez réessayer.'
-      );
+      showError('Erreur lors de la soumission', 'Une erreur est survenue. Veuillez réessayer.');
       throw error;
     }
   };
@@ -173,14 +170,14 @@ export default function MyReviewsPage() {
     return new Date(dateString).toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'long',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('fr-SN', { 
-      style: 'currency', 
-      currency: 'XOF' 
+    return new Intl.NumberFormat('fr-SN', {
+      style: 'currency',
+      currency: 'XOF',
     }).format(amount);
   };
 
@@ -232,7 +229,7 @@ export default function MyReviewsPage() {
       {activeTab === 'pending' ? (
         <div className="space-y-4">
           {pendingProducts.length > 0 ? (
-            pendingProducts.map((product) => (
+            pendingProducts.map(product => (
               <Card key={product.id} className="p-6">
                 <div className="flex items-center gap-4">
                   {product.image ? (
@@ -246,7 +243,7 @@ export default function MyReviewsPage() {
                       <Package className="h-8 w-8 text-gray-400" />
                     </div>
                   )}
-                  
+
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold text-gray-900">{product.name}</h3>
                     <p className="text-sm text-gray-600">Producteur: {product.producer}</p>
@@ -257,7 +254,7 @@ export default function MyReviewsPage() {
                       {formatCurrency(product.price)}
                     </p>
                   </div>
-                  
+
                   <Button
                     onClick={() => handleCreateReview(product)}
                     className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
@@ -271,11 +268,10 @@ export default function MyReviewsPage() {
           ) : (
             <Card className="p-12 text-center">
               <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucun produit à évaluer
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun produit à évaluer</h3>
               <p className="text-gray-600">
-                Vous avez évalué tous vos achats récents. Continuez à acheter pour pouvoir donner de nouveaux avis !
+                Vous avez évalué tous vos achats récents. Continuez à acheter pour pouvoir donner de
+                nouveaux avis !
               </p>
             </Card>
           )}
@@ -283,7 +279,7 @@ export default function MyReviewsPage() {
       ) : (
         <div className="space-y-4">
           {reviews.length > 0 ? (
-            reviews.map((review) => (
+            reviews.map(review => (
               <Card key={review.id} className="p-6">
                 <div className="flex items-start gap-4">
                   {review.product.image ? (
@@ -297,12 +293,10 @@ export default function MyReviewsPage() {
                       <Package className="h-8 w-8 text-gray-400" />
                     </div>
                   )}
-                  
+
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {review.product.name}
-                      </h3>
+                      <h3 className="text-lg font-semibold text-gray-900">{review.product.name}</h3>
                       <Button
                         onClick={() => handleEditReview(review)}
                         variant="outline"
@@ -313,11 +307,11 @@ export default function MyReviewsPage() {
                         Modifier
                       </Button>
                     </div>
-                    
+
                     <p className="text-sm text-gray-600 mb-2">
                       Producteur: {review.product.producer}
                     </p>
-                    
+
                     <div className="flex items-center gap-4 mb-3">
                       <StarRatingInput
                         rating={review.rating}
@@ -325,11 +319,9 @@ export default function MyReviewsPage() {
                         readonly={true}
                         size="sm"
                       />
-                      <span className="text-sm text-gray-500">
-                        {formatDate(review.created_at)}
-                      </span>
+                      <span className="text-sm text-gray-500">{formatDate(review.created_at)}</span>
                     </div>
-                    
+
                     {review.comment && (
                       <div className="bg-gray-50 p-3 rounded-lg">
                         <div className="flex items-start gap-2">
@@ -338,7 +330,7 @@ export default function MyReviewsPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     {review.image && (
                       <div className="mt-3">
                         <img
@@ -355,9 +347,7 @@ export default function MyReviewsPage() {
           ) : (
             <Card className="p-12 text-center">
               <Star className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">
-                Aucun avis publié
-              </h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun avis publié</h3>
               <p className="text-gray-600">
                 Vous n'avez pas encore publié d'avis. Commencez par évaluer vos achats !
               </p>
@@ -379,7 +369,7 @@ export default function MyReviewsPage() {
 
       {/* Toast Container */}
       <div className="fixed top-4 right-4 z-50 space-y-2">
-        {toasts.map((toast) => (
+        {toasts.map(toast => (
           <Toast key={toast.id} {...toast} />
         ))}
       </div>

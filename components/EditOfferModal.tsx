@@ -1,49 +1,29 @@
-"use client";
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
-
-interface Opportunite {
-  id: number;
-  titreAnnonce: string;
-  referenceAnnonce: string;
-  datePublication: string;
-  distributeur: {
-    nom: string;
-    ville: string;
-    avatar?: string;
-    note: number;
-  };
-  produitDemande: string;
-  quantiteDemandee: number;
-  uniteDemandee: string;
-  categorie: string;
-  monOffre: {
-    prix: number;
-    quantite: number;
-    unite: string;
-    dateOffre: string;
-  };
-  budgetMax: number;
-  statut: 'En cours' | 'Acceptée' | 'Refusée' | 'Expirée';
-  dateAcceptation?: string;
-  echeance: string;
-  joursRestants: number;
-  nombreCandidats?: number;
-}
+import type { Opportunite } from '@/types/opportunities';
 
 interface EditOfferModalProps {
   isOpen: boolean;
   onClose: () => void;
   opportunite: Opportunite | null;
-  onSave: (opportuniteId: number, newOffer: { prix: number; quantite: number; unite: string }) => void;
+  onSave: (
+    opportuniteId: number,
+    newOffer: { prix: number; quantite: number; unite: string }
+  ) => void;
 }
 
-export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }: EditOfferModalProps) {
+export default function EditOfferModal({
+  isOpen,
+  onClose,
+  opportunite,
+  onSave,
+}: EditOfferModalProps) {
   const [formData, setFormData] = useState({
     prix: 0,
     quantite: 0,
-    unite: ''
+    unite: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -54,7 +34,7 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
       setFormData({
         prix: opportunite.monOffre.prix,
         quantite: opportunite.monOffre.quantite,
-        unite: opportunite.monOffre.unite
+        unite: opportunite.monOffre.unite,
       });
       setErrors({});
     }
@@ -72,7 +52,7 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
     }
 
     if (!formData.unite.trim()) {
-      newErrors.unite = 'L\'unité est requise';
+      newErrors.unite = "L'unité est requise";
     }
 
     if (opportunite && formData.prix > opportunite.budgetMax) {
@@ -85,21 +65,21 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm() || !opportunite) return;
 
     setIsLoading(true);
-    
+
     try {
       // Simuler une sauvegarde
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       onSave(opportunite.id, {
         prix: formData.prix,
         quantite: formData.quantite,
-        unite: formData.unite
+        unite: formData.unite,
       });
-      
+
       onClose();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
@@ -128,9 +108,7 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Modifier mon offre
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900">Modifier mon offre</h2>
               <p className="text-gray-500">{opportunite.titreAnnonce}</p>
               <p className="text-sm text-gray-400">Réf: #{opportunite.referenceAnnonce}</p>
             </div>
@@ -150,12 +128,22 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
             <h3 className="font-semibold text-gray-900 mb-3">Détails de l'annonce</h3>
             <div className="grid md:grid-cols-2 gap-4 text-sm">
               <div>
-                <div><span className="text-gray-500">Produit:</span> {opportunite.produitDemande}</div>
-                <div><span className="text-gray-500">Quantité demandée:</span> {opportunite.quantiteDemandee} {opportunite.uniteDemandee}</div>
+                <div>
+                  <span className="text-gray-500">Produit:</span> {opportunite.produitDemande}
+                </div>
+                <div>
+                  <span className="text-gray-500">Quantité demandée:</span>{' '}
+                  {opportunite.quantiteDemandee} {opportunite.uniteDemandee}
+                </div>
               </div>
               <div>
-                <div><span className="text-gray-500">Budget maximum:</span> {opportunite.budgetMax.toLocaleString()} XOF</div>
-                <div><span className="text-gray-500">Échéance:</span> {opportunite.echeance}</div>
+                <div>
+                  <span className="text-gray-500">Budget maximum:</span>{' '}
+                  {opportunite.budgetMax.toLocaleString()} XOF
+                </div>
+                <div>
+                  <span className="text-gray-500">Échéance:</span> {opportunite.echeance}
+                </div>
               </div>
             </div>
           </div>
@@ -171,15 +159,13 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
                 <input
                   type="number"
                   value={formData.prix}
-                  onChange={(e) => handleInputChange('prix', parseInt(e.target.value) || 0)}
+                  onChange={e => handleInputChange('prix', parseInt(e.target.value) || 0)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.prix ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Entrez le prix"
                 />
-                {errors.prix && (
-                  <p className="text-red-500 text-xs mt-1">{errors.prix}</p>
-                )}
+                {errors.prix && <p className="text-red-500 text-xs mt-1">{errors.prix}</p>}
                 {isOverBudget && (
                   <div className="flex items-center gap-2 mt-2 text-orange-600 text-sm">
                     <AlertCircle className="w-4 h-4" />
@@ -196,26 +182,22 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
                 <input
                   type="number"
                   value={formData.quantite}
-                  onChange={(e) => handleInputChange('quantite', parseInt(e.target.value) || 0)}
+                  onChange={e => handleInputChange('quantite', parseInt(e.target.value) || 0)}
                   className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                     errors.quantite ? 'border-red-300' : 'border-gray-300'
                   }`}
                   placeholder="Entrez la quantité"
                 />
-                {errors.quantite && (
-                  <p className="text-red-500 text-xs mt-1">{errors.quantite}</p>
-                )}
+                {errors.quantite && <p className="text-red-500 text-xs mt-1">{errors.quantite}</p>}
               </div>
             </div>
 
             {/* Unité */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Unité *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Unité *</label>
               <select
                 value={formData.unite}
-                onChange={(e) => handleInputChange('unite', e.target.value)}
+                onChange={e => handleInputChange('unite', e.target.value)}
                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
                   errors.unite ? 'border-red-300' : 'border-gray-300'
                 }`}
@@ -231,9 +213,7 @@ export default function EditOfferModal({ isOpen, onClose, opportunite, onSave }:
                 <option value="douzaines">Douzaines</option>
                 <option value="centaines">Centaines</option>
               </select>
-              {errors.unite && (
-                <p className="text-red-500 text-xs mt-1">{errors.unite}</p>
-              )}
+              {errors.unite && <p className="text-red-500 text-xs mt-1">{errors.unite}</p>}
             </div>
 
             {/* Résumé de l'offre */}

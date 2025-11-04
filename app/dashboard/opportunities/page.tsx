@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
@@ -6,230 +6,231 @@ import { Card } from '@/components/ui/card';
 import TabButton from '@/components/ui/TabButton';
 import OpportuniteRow from '@/components/OpportuniteRow';
 import DetailsOpportuniteModal from '@/components/DetailsOpportuniteModal';
+import type { Opportunite } from '@/types/opportunities';
 
 // Données mock pour les opportunités
-const exampleOpportunites = [
+const exampleOpportunites: Opportunite[] = [
   {
     id: 1,
-    titreAnnonce: "Poulets fermiers pour restaurant",
-    referenceAnnonce: "ANN-2024-001",
-    datePublication: "10/09/2025",
+    titreAnnonce: 'Poulets fermiers pour restaurant',
+    referenceAnnonce: 'ANN-2024-001',
+    datePublication: '10/09/2025',
     distributeur: {
-      nom: "Restaurant Le Dakar",
-      ville: "Dakar, Sénégal",
-      avatar: "/avatars/restaurant.jpg",
-      note: 4.8
+      nom: 'Restaurant Le Dakar',
+      ville: 'Dakar, Sénégal',
+      avatar: '/avatars/restaurant.jpg',
+      note: 4.8,
     },
-    produitDemande: "Poulets fermiers",
+    produitDemande: 'Poulets fermiers',
     quantiteDemandee: 50,
-    uniteDemandee: "pièces",
-    categorie: "Volailles Vivantes",
+    uniteDemandee: 'pièces',
+    categorie: 'Volailles Vivantes',
     monOffre: {
       prix: 2500,
       quantite: 50,
-      unite: "pièces",
-      dateOffre: "11/09/2025"
+      unite: 'pièces',
+      dateOffre: '11/09/2025',
     },
     budgetMax: 2800,
-    statut: "En cours" as const,
-    echeance: "25/09/2025",
+    statut: 'En cours' as const,
+    echeance: '25/09/2025',
     joursRestants: 6,
-    nombreCandidats: 8
+    nombreCandidats: 8,
   },
   {
     id: 2,
-    titreAnnonce: "Œufs bio pour boulangerie",
-    referenceAnnonce: "ANN-2024-002",
-    datePublication: "08/09/2025",
+    titreAnnonce: 'Œufs bio pour boulangerie',
+    referenceAnnonce: 'ANN-2024-002',
+    datePublication: '08/09/2025',
     distributeur: {
-      nom: "Boulangerie Sall",
-      ville: "Thiès, Sénégal",
-      avatar: "/avatars/boulangerie.jpg",
-      note: 4.5
+      nom: 'Boulangerie Sall',
+      ville: 'Thiès, Sénégal',
+      avatar: '/avatars/boulangerie.jpg',
+      note: 4.5,
     },
-    produitDemande: "Œufs biologiques",
+    produitDemande: 'Œufs biologiques',
     quantiteDemandee: 200,
-    uniteDemandee: "pièces",
-    categorie: "Œufs & Reproduction",
+    uniteDemandee: 'pièces',
+    categorie: 'Œufs & Reproduction',
     monOffre: {
       prix: 1800,
       quantite: 200,
-      unite: "pièces",
-      dateOffre: "09/09/2025"
+      unite: 'pièces',
+      dateOffre: '09/09/2025',
     },
     budgetMax: 2000,
-    statut: "Acceptée" as const,
-    dateAcceptation: "12/09/2025",
-    echeance: "20/09/2025",
-    joursRestants: 1
+    statut: 'Acceptée' as const,
+    dateAcceptation: '12/09/2025',
+    echeance: '20/09/2025',
+    joursRestants: 1,
   },
   {
     id: 3,
-    titreAnnonce: "Aliments pour volailles",
-    referenceAnnonce: "ANN-2024-003",
-    datePublication: "05/09/2025",
+    titreAnnonce: 'Aliments pour volailles',
+    referenceAnnonce: 'ANN-2024-003',
+    datePublication: '05/09/2025',
     distributeur: {
-      nom: "Ferme Moderne",
-      ville: "Saint-Louis, Sénégal",
-      avatar: "/avatars/ferme.jpg",
-      note: 4.2
+      nom: 'Ferme Moderne',
+      ville: 'Saint-Louis, Sénégal',
+      avatar: '/avatars/ferme.jpg',
+      note: 4.2,
     },
-    produitDemande: "Aliments avicoles",
+    produitDemande: 'Aliments avicoles',
     quantiteDemandee: 1000,
-    uniteDemandee: "kg",
-    categorie: "Aliments Avicoles",
+    uniteDemandee: 'kg',
+    categorie: 'Aliments Avicoles',
     monOffre: {
       prix: 450,
       quantite: 1000,
-      unite: "kg",
-      dateOffre: "06/09/2025"
+      unite: 'kg',
+      dateOffre: '06/09/2025',
     },
     budgetMax: 500,
-    statut: "Refusée" as const,
-    echeance: "15/09/2025",
-    joursRestants: -5
+    statut: 'Refusée' as const,
+    echeance: '15/09/2025',
+    joursRestants: -5,
   },
   {
     id: 4,
     titreAnnonce: "Équipements d'élevage",
-    referenceAnnonce: "ANN-2024-004",
-    datePublication: "01/09/2025",
+    referenceAnnonce: 'ANN-2024-004',
+    datePublication: '01/09/2025',
     distributeur: {
-      nom: "Coopérative Agricole",
-      ville: "Kaolack, Sénégal",
-      avatar: "/avatars/cooperative.jpg",
-      note: 4.7
+      nom: 'Coopérative Agricole',
+      ville: 'Kaolack, Sénégal',
+      avatar: '/avatars/cooperative.jpg',
+      note: 4.7,
     },
-    produitDemande: "Mangeoires automatiques",
+    produitDemande: 'Mangeoires automatiques',
     quantiteDemandee: 20,
-    uniteDemandee: "pièces",
-    categorie: "Équipements",
+    uniteDemandee: 'pièces',
+    categorie: 'Équipements',
     monOffre: {
       prix: 15000,
       quantite: 20,
-      unite: "pièces",
-      dateOffre: "02/09/2025"
+      unite: 'pièces',
+      dateOffre: '02/09/2025',
     },
     budgetMax: 18000,
-    statut: "Expirée" as const,
-    echeance: "10/09/2025",
-    joursRestants: -10
+    statut: 'Expirée' as const,
+    echeance: '10/09/2025',
+    joursRestants: -10,
   },
   {
     id: 5,
-    titreAnnonce: "Poulets de chair premium",
-    referenceAnnonce: "ANN-2024-005",
-    datePublication: "15/09/2025",
+    titreAnnonce: 'Poulets de chair premium',
+    referenceAnnonce: 'ANN-2024-005',
+    datePublication: '15/09/2025',
     distributeur: {
-      nom: "Super Marché Plus",
-      ville: "Dakar, Sénégal",
-      avatar: "/avatars/supermarche.jpg",
-      note: 4.6
+      nom: 'Super Marché Plus',
+      ville: 'Dakar, Sénégal',
+      avatar: '/avatars/supermarche.jpg',
+      note: 4.6,
     },
-    produitDemande: "Poulets de chair",
+    produitDemande: 'Poulets de chair',
     quantiteDemandee: 100,
-    uniteDemandee: "pièces",
-    categorie: "Volailles Vivantes",
+    uniteDemandee: 'pièces',
+    categorie: 'Volailles Vivantes',
     monOffre: {
       prix: 3200,
       quantite: 100,
-      unite: "pièces",
-      dateOffre: "16/09/2025"
+      unite: 'pièces',
+      dateOffre: '16/09/2025',
     },
     budgetMax: 3500,
-    statut: "En cours" as const,
-    echeance: "30/09/2025",
+    statut: 'En cours' as const,
+    echeance: '30/09/2025',
     joursRestants: 11,
-    nombreCandidats: 5
+    nombreCandidats: 5,
   },
   {
     id: 6,
-    titreAnnonce: "Œufs de consommation",
-    referenceAnnonce: "ANN-2024-006",
-    datePublication: "12/09/2025",
+    titreAnnonce: 'Œufs de consommation',
+    referenceAnnonce: 'ANN-2024-006',
+    datePublication: '12/09/2025',
     distributeur: {
-      nom: "Marché Central",
-      ville: "Thiès, Sénégal",
-      avatar: "/avatars/marche.jpg",
-      note: 4.3
+      nom: 'Marché Central',
+      ville: 'Thiès, Sénégal',
+      avatar: '/avatars/marche.jpg',
+      note: 4.3,
     },
-    produitDemande: "Œufs de consommation",
+    produitDemande: 'Œufs de consommation',
     quantiteDemandee: 500,
-    uniteDemandee: "pièces",
-    categorie: "Œufs & Reproduction",
+    uniteDemandee: 'pièces',
+    categorie: 'Œufs & Reproduction',
     monOffre: {
       prix: 1200,
       quantite: 500,
-      unite: "pièces",
-      dateOffre: "13/09/2025"
+      unite: 'pièces',
+      dateOffre: '13/09/2025',
     },
     budgetMax: 1500,
-    statut: "En cours" as const,
-    echeance: "28/09/2025",
+    statut: 'En cours' as const,
+    echeance: '28/09/2025',
     joursRestants: 9,
-    nombreCandidats: 12
+    nombreCandidats: 12,
   },
   {
     id: 7,
-    titreAnnonce: "Aliments pour pondeuses",
-    referenceAnnonce: "ANN-2024-007",
-    datePublication: "14/09/2025",
+    titreAnnonce: 'Aliments pour pondeuses',
+    referenceAnnonce: 'ANN-2024-007',
+    datePublication: '14/09/2025',
     distributeur: {
-      nom: "Ferme Avicole Moderne",
-      ville: "Saint-Louis, Sénégal",
-      avatar: "/avatars/ferme-avicole.jpg",
-      note: 4.9
+      nom: 'Ferme Avicole Moderne',
+      ville: 'Saint-Louis, Sénégal',
+      avatar: '/avatars/ferme-avicole.jpg',
+      note: 4.9,
     },
-    produitDemande: "Aliments pour pondeuses",
+    produitDemande: 'Aliments pour pondeuses',
     quantiteDemandee: 2000,
-    uniteDemandee: "kg",
-    categorie: "Aliments Avicoles",
+    uniteDemandee: 'kg',
+    categorie: 'Aliments Avicoles',
     monOffre: {
       prix: 900,
       quantite: 2000,
-      unite: "kg",
-      dateOffre: "15/09/2025"
+      unite: 'kg',
+      dateOffre: '15/09/2025',
     },
     budgetMax: 1000,
-    statut: "En cours" as const,
-    echeance: "02/10/2025",
+    statut: 'En cours' as const,
+    echeance: '02/10/2025',
     joursRestants: 13,
-    nombreCandidats: 7
+    nombreCandidats: 7,
   },
   {
     id: 8,
-    titreAnnonce: "Canards fermiers",
-    referenceAnnonce: "ANN-2024-008",
-    datePublication: "16/09/2025",
+    titreAnnonce: 'Canards fermiers',
+    referenceAnnonce: 'ANN-2024-008',
+    datePublication: '16/09/2025',
     distributeur: {
-      nom: "Restaurant Traditionnel",
-      ville: "Ziguinchor, Sénégal",
-      avatar: "/avatars/restaurant-trad.jpg",
-      note: 4.4
+      nom: 'Restaurant Traditionnel',
+      ville: 'Ziguinchor, Sénégal',
+      avatar: '/avatars/restaurant-trad.jpg',
+      note: 4.4,
     },
-    produitDemande: "Canards fermiers",
+    produitDemande: 'Canards fermiers',
     quantiteDemandee: 30,
-    uniteDemandee: "pièces",
-    categorie: "Volailles Vivantes",
+    uniteDemandee: 'pièces',
+    categorie: 'Volailles Vivantes',
     monOffre: {
       prix: 4000,
       quantite: 30,
-      unite: "pièces",
-      dateOffre: "17/09/2025"
+      unite: 'pièces',
+      dateOffre: '17/09/2025',
     },
     budgetMax: 4500,
-    statut: "En cours" as const,
-    echeance: "05/10/2025",
+    statut: 'En cours' as const,
+    echeance: '05/10/2025',
     joursRestants: 16,
-    nombreCandidats: 3
-  }
+    nombreCandidats: 3,
+  },
 ];
 
 export default function OpportunitiesPage() {
   const [activeTab, setActiveTab] = useState('en-cours');
-  const [selectedOpportunite, setSelectedOpportunite] = useState<any>(null);
+  const [selectedOpportunite, setSelectedOpportunite] = useState<Opportunite | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [opportunites, setOpportunites] = useState(exampleOpportunites);
+  const [opportunites, setOpportunites] = useState<Opportunite[]>(exampleOpportunites);
 
   const getFilteredOpportunites = (tab: string) => {
     switch (tab) {
@@ -246,35 +247,43 @@ export default function OpportunitiesPage() {
     }
   };
 
-  const handleShowDetails = (opportunite: any) => {
+  const handleShowDetails = (opportunite: Opportunite) => {
     setSelectedOpportunite(opportunite);
     setShowDetailsModal(true);
   };
 
-  const handleUpdateOffer = (opportuniteId: number, newOffer: { prix: number; quantite: number; unite: string }) => {
-    setOpportunites(prev => prev.map(opp => 
-      opp.id === opportuniteId 
-        ? { 
-            ...opp, 
-            monOffre: { 
-              ...opp.monOffre, 
-              ...newOffer,
-              dateOffre: new Date().toLocaleDateString('fr-FR')
-            } 
-          }
-        : opp
-    ));
-    
+  const handleUpdateOffer = (
+    opportuniteId: number,
+    newOffer: { prix: number; quantite: number; unite: string }
+  ) => {
+    setOpportunites(prev =>
+      prev.map(opp =>
+        opp.id === opportuniteId
+          ? {
+              ...opp,
+              monOffre: {
+                ...opp.monOffre,
+                ...newOffer,
+                dateOffre: new Date().toLocaleDateString('fr-FR'),
+              },
+            }
+          : opp
+      )
+    );
+
     // Mettre à jour l'opportunité sélectionnée si c'est la même
     if (selectedOpportunite && selectedOpportunite.id === opportuniteId) {
-      setSelectedOpportunite(prev => ({
-        ...prev,
-        monOffre: { 
-          ...prev.monOffre, 
-          ...newOffer,
-          dateOffre: new Date().toLocaleDateString('fr-FR')
-        }
-      }));
+      setSelectedOpportunite(prev => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          monOffre: {
+            ...prev.monOffre,
+            ...newOffer,
+            dateOffre: new Date().toLocaleDateString('fr-FR'),
+          },
+        };
+      });
     }
   };
 
@@ -291,7 +300,7 @@ export default function OpportunitiesPage() {
               Gérez vos offres aux annonces des distributeurs et suivez leurs performances
             </p>
           </div>
-          
+
           {/* Statistiques rapides */}
           <div className="flex gap-4 text-sm">
             <div className="bg-white px-4 py-3 rounded-lg shadow-sm border">
@@ -374,9 +383,13 @@ export default function OpportunitiesPage() {
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th className="text-left py-3 px-2 font-semibold text-gray-700 w-48">ANNONCE</th>
-                  <th className="text-left py-3 px-2 font-semibold text-gray-700 w-40">DISTRIBUTEUR</th>
+                  <th className="text-left py-3 px-2 font-semibold text-gray-700 w-40">
+                    DISTRIBUTEUR
+                  </th>
                   <th className="text-left py-3 px-2 font-semibold text-gray-700 w-36">PRODUIT</th>
-                  <th className="text-left py-3 px-2 font-semibold text-gray-700 w-28">MON OFFRE</th>
+                  <th className="text-left py-3 px-2 font-semibold text-gray-700 w-28">
+                    MON OFFRE
+                  </th>
                   <th className="text-left py-3 px-2 font-semibold text-gray-700 w-24">BUDGET</th>
                   <th className="text-left py-3 px-2 font-semibold text-gray-700 w-20">STATUT</th>
                   <th className="text-left py-3 px-2 font-semibold text-gray-700 w-24">ÉCHÉANCE</th>
@@ -385,9 +398,9 @@ export default function OpportunitiesPage() {
               </thead>
               <tbody>
                 {currentOpportunites.length > 0 ? (
-                  currentOpportunites.map((opportunite) => (
-                    <OpportuniteRow 
-                      key={opportunite.id} 
+                  currentOpportunites.map(opportunite => (
+                    <OpportuniteRow
+                      key={opportunite.id}
                       opportunite={opportunite}
                       onShowDetails={handleShowDetails}
                       onUpdateOffer={handleUpdateOffer}

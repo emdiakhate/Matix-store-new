@@ -1,53 +1,36 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
 import EditOfferModal from './EditOfferModal';
-
-interface Opportunite {
-  id: number;
-  titreAnnonce: string;
-  referenceAnnonce: string;
-  datePublication: string;
-  distributeur: {
-    nom: string;
-    ville: string;
-    avatar?: string;
-    note: number;
-  };
-  produitDemande: string;
-  quantiteDemandee: number;
-  uniteDemandee: string;
-  categorie: string;
-  monOffre: {
-    prix: number;
-    quantite: number;
-    unite: string;
-    dateOffre: string;
-  };
-  budgetMax: number;
-  statut: 'En cours' | 'Acceptée' | 'Refusée' | 'Expirée';
-  dateAcceptation?: string;
-  echeance: string;
-  joursRestants: number;
-  nombreCandidats?: number;
-}
+import type { Opportunite } from '@/types/opportunities';
 
 interface DetailsOpportuniteModalProps {
   isOpen: boolean;
   onClose: () => void;
   opportunite: Opportunite | null;
-  onUpdateOffer: (opportuniteId: number, newOffer: { prix: number; quantite: number; unite: string }) => void;
+  onUpdateOffer: (
+    opportuniteId: number,
+    newOffer: { prix: number; quantite: number; unite: string }
+  ) => void;
 }
 
-export default function DetailsOpportuniteModal({ isOpen, onClose, opportunite, onUpdateOffer }: DetailsOpportuniteModalProps) {
+export default function DetailsOpportuniteModal({
+  isOpen,
+  onClose,
+  opportunite,
+  onUpdateOffer,
+}: DetailsOpportuniteModalProps) {
   const [showEditModal, setShowEditModal] = useState(false);
 
   const handleEditOffer = () => {
     setShowEditModal(true);
   };
 
-  const handleSaveOffer = (opportuniteId: number, newOffer: { prix: number; quantite: number; unite: string }) => {
+  const handleSaveOffer = (
+    opportuniteId: number,
+    newOffer: { prix: number; quantite: number; unite: string }
+  ) => {
     onUpdateOffer(opportuniteId, newOffer);
     setShowEditModal(false);
   };
@@ -61,9 +44,7 @@ export default function DetailsOpportuniteModal({ isOpen, onClose, opportunite, 
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                {opportunite.titreAnnonce}
-              </h2>
+              <h2 className="text-xl font-bold text-gray-900">{opportunite.titreAnnonce}</h2>
               <p className="text-gray-500">Réf: #{opportunite.referenceAnnonce}</p>
             </div>
             <button
@@ -82,33 +63,67 @@ export default function DetailsOpportuniteModal({ isOpen, onClose, opportunite, 
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Détails de l'annonce</h3>
               <div className="space-y-2 text-sm">
-                <div><span className="text-gray-500">Produit:</span> {opportunite.produitDemande}</div>
-                <div><span className="text-gray-500">Quantité:</span> {opportunite.quantiteDemandee} {opportunite.uniteDemandee}</div>
-                <div><span className="text-gray-500">Budget max:</span> {opportunite.budgetMax.toLocaleString()} XOF</div>
-                <div><span className="text-gray-500">Échéance:</span> {opportunite.echeance}</div>
-                <div><span className="text-gray-500">Distributeur:</span> {opportunite.distributeur.nom}</div>
-                <div><span className="text-gray-500">Localisation:</span> {opportunite.distributeur.ville}</div>
+                <div>
+                  <span className="text-gray-500">Produit:</span> {opportunite.produitDemande}
+                </div>
+                <div>
+                  <span className="text-gray-500">Quantité:</span> {opportunite.quantiteDemandee}{' '}
+                  {opportunite.uniteDemandee}
+                </div>
+                <div>
+                  <span className="text-gray-500">Budget max:</span>{' '}
+                  {opportunite.budgetMax.toLocaleString()} XOF
+                </div>
+                <div>
+                  <span className="text-gray-500">Échéance:</span> {opportunite.echeance}
+                </div>
+                <div>
+                  <span className="text-gray-500">Distributeur:</span>{' '}
+                  {opportunite.distributeur.nom}
+                </div>
+                <div>
+                  <span className="text-gray-500">Localisation:</span>{' '}
+                  {opportunite.distributeur.ville}
+                </div>
               </div>
             </div>
-            
+
             <div>
               <h3 className="font-semibold text-gray-900 mb-3">Mon offre</h3>
               <div className="space-y-2 text-sm">
-                <div><span className="text-gray-500">Prix proposé:</span> {opportunite.monOffre.prix.toLocaleString()} XOF</div>
-                <div><span className="text-gray-500">Quantité:</span> {opportunite.monOffre.quantite} {opportunite.monOffre.unite}</div>
-                <div><span className="text-gray-500">Date d'offre:</span> {opportunite.monOffre.dateOffre}</div>
-                <div><span className="text-gray-500">Statut:</span> 
-                  <span className={`ml-2 px-2 py-1 rounded text-xs ${
-                    opportunite.statut === 'Acceptée' ? 'bg-green-100 text-green-700' : 
-                    opportunite.statut === 'En cours' ? 'bg-blue-100 text-blue-700' :
-                    opportunite.statut === 'Refusée' ? 'bg-red-100 text-red-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+                <div>
+                  <span className="text-gray-500">Prix proposé:</span>{' '}
+                  {opportunite.monOffre.prix.toLocaleString()} XOF
+                </div>
+                <div>
+                  <span className="text-gray-500">Quantité:</span> {opportunite.monOffre.quantite}{' '}
+                  {opportunite.monOffre.unite}
+                </div>
+                <div>
+                  <span className="text-gray-500">Date d'offre:</span>{' '}
+                  {opportunite.monOffre.dateOffre}
+                </div>
+                <div>
+                  <span className="text-gray-500">Statut:</span>
+                  <span
+                    className={`ml-2 px-2 py-1 rounded text-xs ${
+                      opportunite.statut === 'Acceptée'
+                        ? 'bg-green-100 text-green-700'
+                        : opportunite.statut === 'En cours'
+                          ? 'bg-blue-100 text-blue-700'
+                          : opportunite.statut === 'Refusée'
+                            ? 'bg-red-100 text-red-700'
+                            : 'bg-gray-100 text-gray-700'
+                    }`}
+                  >
                     {opportunite.statut}
                   </span>
                 </div>
                 {opportunite.dateAcceptation && (
-                  <div><span className="text-gray-500">Acceptée le:</span> {opportunite.dateAcceptation}</div>
+                  <div>
+                    <span className="text-gray-500">Acceptée le:</span>{' '}
+                    {opportunite.dateAcceptation}
+                  </div>
                 )}
               </div>
             </div>
@@ -131,10 +146,18 @@ export default function DetailsOpportuniteModal({ isOpen, onClose, opportunite, 
                 <div className="text-gray-500">Budget max</div>
               </div>
               <div className="text-center">
-                <div className={`text-2xl font-bold ${
-                  opportunite.monOffre.prix <= opportunite.budgetMax ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {Math.round(((opportunite.budgetMax - opportunite.monOffre.prix) / opportunite.budgetMax) * 100)}%
+                <div
+                  className={`text-2xl font-bold ${
+                    opportunite.monOffre.prix <= opportunite.budgetMax
+                      ? 'text-green-600'
+                      : 'text-red-600'
+                  }`}
+                >
+                  {Math.round(
+                    ((opportunite.budgetMax - opportunite.monOffre.prix) / opportunite.budgetMax) *
+                      100
+                  )}
+                  %
                 </div>
                 <div className="text-gray-500">
                   {opportunite.monOffre.prix <= opportunite.budgetMax ? 'Marge' : 'Dépassement'}
@@ -147,7 +170,7 @@ export default function DetailsOpportuniteModal({ isOpen, onClose, opportunite, 
           <div className="flex gap-3 pt-4 border-t border-gray-200">
             {opportunite.statut === 'En cours' && (
               <>
-                <button 
+                <button
                   onClick={handleEditOffer}
                   className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
                 >

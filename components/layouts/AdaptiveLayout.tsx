@@ -10,7 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/contexts/AuthContext';
-import { 
+import {
   BarChart3,
   Package,
   ShoppingCart,
@@ -34,7 +34,7 @@ import {
   TrendingUp,
   ShoppingBag,
   Home,
-  Info
+  Info,
 } from 'lucide-react';
 import RoleSwitcher from '@/components/RoleSwitcher';
 import SidebarTransition from '@/components/animations/SidebarTransition';
@@ -48,53 +48,108 @@ interface AdaptiveLayoutProps {
   className?: string;
 }
 
-export default function AdaptiveLayout({ 
-  children, 
+export default function AdaptiveLayout({
+  children,
   activePage = 'dashboard',
-  className = ''
+  className = '',
 }: AdaptiveLayoutProps) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  
+
   const { activeRole, user, isLoading } = useAuth();
-  
+
   // Gestion des erreurs et états
   const [error, setError] = useState<string | null>(null);
-  
+
   // Déterminer les propriétés basées sur le rôle actif
-  const isProducer = activeRole === 'producer';
+  const isProducer = activeRole === 'farmer';
   const isDistributor = activeRole === 'distributor';
   const roleLabel = isProducer ? 'Producteur' : 'Distributeur';
   const roleIcon = isProducer ? '🌾' : '🏪';
   const roleColor = isProducer ? 'green' : 'blue';
-  
+
+  // Type pour les items de navigation
+  type NavigationItem = {
+    id: string;
+    label: string;
+    icon: string;
+    href: string;
+    badge?: string | number;
+  };
+
   // Navigation items basés sur le rôle
-  const navigationItems = isProducer ? [
-    { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', href: '/dashboard' },
-    { id: 'products', label: 'Mes Produits', icon: 'Package', href: '/dashboard/products' },
-    { id: 'sent-propositions', label: 'Mes Propositions', icon: 'Send', href: '/dashboard/sent-propositions' },
-    { id: 'received-offers', label: 'Mes Offres', icon: 'Inbox', href: '/dashboard/received-offers' },
-    { id: 'announcements', label: 'Mes Annonces', icon: 'Megaphone', href: '/dashboard/announcements' },
-    { id: 'orders', label: 'Commandes', icon: 'ShoppingCart', href: '/dashboard/orders' },
-    { id: 'reviews', label: 'Avis', icon: 'Star', href: '/dashboard/reviews' },
-    { id: 'geolocation', label: 'Géolocalisation', icon: 'MapPin', href: '/dashboard/geolocation' },
-    { id: 'stats', label: 'Statistiques', icon: 'TrendingUp', href: '/dashboard/stats' },
-    { id: 'profile', label: 'Profil', icon: 'User', href: '/dashboard/profile' }
-  ] : [
-    { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', href: '/dashboard/distributor' },
-    { id: 'search', label: 'Rechercher', icon: 'Search', href: '/dashboard/distributor/search' },
-    { id: 'requests', label: 'Annonces', icon: 'Users', href: '/dashboard/distributor/requests' },
-    { id: 'propositions', label: 'Propositions', icon: 'FileText', href: '/dashboard/distributor/propositions' },
-    { id: 'achats', label: 'Mes Achats', icon: 'ShoppingBag', href: '/dashboard/distributor/achats' },
-    { id: 'alerts', label: 'Mes Alertes', icon: 'Bell', href: '/dashboard/distributor/alerts' },
-    { id: 'my-reviews', label: 'Mes Avis', icon: 'Star', href: '/dashboard/distributor/my-reviews' },
-    { id: 'profile', label: 'Profil', icon: 'User', href: '/dashboard/distributor/profile' }
-  ];
-  
+  const navigationItems: NavigationItem[] = isProducer
+    ? [
+        { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', href: '/dashboard' },
+        { id: 'products', label: 'Mes Produits', icon: 'Package', href: '/dashboard/products' },
+        {
+          id: 'sent-propositions',
+          label: 'Mes Propositions',
+          icon: 'Send',
+          href: '/dashboard/sent-propositions',
+        },
+        {
+          id: 'received-offers',
+          label: 'Mes Offres',
+          icon: 'Inbox',
+          href: '/dashboard/received-offers',
+        },
+        {
+          id: 'announcements',
+          label: 'Mes Annonces',
+          icon: 'Megaphone',
+          href: '/dashboard/announcements',
+        },
+        { id: 'orders', label: 'Commandes', icon: 'ShoppingCart', href: '/dashboard/orders' },
+        { id: 'reviews', label: 'Avis', icon: 'Star', href: '/dashboard/reviews' },
+        {
+          id: 'geolocation',
+          label: 'Géolocalisation',
+          icon: 'MapPin',
+          href: '/dashboard/geolocation',
+        },
+        { id: 'stats', label: 'Statistiques', icon: 'TrendingUp', href: '/dashboard/stats' },
+        { id: 'profile', label: 'Profil', icon: 'User', href: '/dashboard/profile' },
+      ]
+    : [
+        { id: 'dashboard', label: 'Dashboard', icon: 'BarChart3', href: '/dashboard/distributor' },
+        {
+          id: 'search',
+          label: 'Rechercher',
+          icon: 'Search',
+          href: '/dashboard/distributor/search',
+        },
+        {
+          id: 'requests',
+          label: 'Annonces',
+          icon: 'Users',
+          href: '/dashboard/distributor/requests',
+        },
+        {
+          id: 'propositions',
+          label: 'Propositions',
+          icon: 'FileText',
+          href: '/dashboard/distributor/propositions',
+        },
+        {
+          id: 'achats',
+          label: 'Mes Achats',
+          icon: 'ShoppingBag',
+          href: '/dashboard/distributor/achats',
+        },
+        { id: 'alerts', label: 'Mes Alertes', icon: 'Bell', href: '/dashboard/distributor/alerts' },
+        {
+          id: 'my-reviews',
+          label: 'Mes Avis',
+          icon: 'Star',
+          href: '/dashboard/distributor/my-reviews',
+        },
+        { id: 'profile', label: 'Profil', icon: 'User', href: '/dashboard/distributor/profile' },
+      ];
+
   const hasPermission = (permission: string) => true; // Simplifié pour l'instant
-  
-  
+
   const logout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('currentUser');
@@ -139,7 +194,7 @@ export default function AdaptiveLayout({
       Inbox: <Inbox className="h-4 w-4" />,
       Megaphone: <Megaphone className="h-4 w-4" />,
       TrendingUp: <TrendingUp className="h-4 w-4" />,
-      ShoppingBag: <ShoppingBag className="h-4 w-4" />
+      ShoppingBag: <ShoppingBag className="h-4 w-4" />,
     };
     return icons[iconName] || <BarChart3 className="h-4 w-4" />;
   };
@@ -162,7 +217,9 @@ export default function AdaptiveLayout({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900 mb-4">Accès non autorisé</h1>
-          <p className="text-gray-600 mb-6">{error || 'Veuillez vous connecter pour accéder au dashboard.'}</p>
+          <p className="text-gray-600 mb-6">
+            {error || 'Veuillez vous connecter pour accéder au dashboard.'}
+          </p>
           <Link href="/">
             <Button className="bg-green-600 hover:bg-green-700 text-white">
               Retour à l'accueil
@@ -192,13 +249,9 @@ export default function AdaptiveLayout({
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            <RoleBadge 
-              role={activeRole} 
-              isTransitioning={false}
-              size="sm"
-            />
+            <RoleBadge role={activeRole} isTransitioning={false} size="sm" />
             <Button
               variant="ghost"
               size="icon"
@@ -230,8 +283,8 @@ export default function AdaptiveLayout({
               <div className="text-center border-b pb-4">
                 <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3">
                   {user.avatar_url ? (
-                    <img 
-                      src={user.avatar_url} 
+                    <img
+                      src={user.avatar_url}
                       alt={user.full_name}
                       className="w-full h-full object-cover"
                     />
@@ -243,18 +296,11 @@ export default function AdaptiveLayout({
                 </div>
                 <h3 className="font-semibold text-gray-900">{user.full_name}</h3>
                 <p className="text-sm text-gray-500">{user.email}</p>
-                <RoleBadge 
-                  role={activeRole} 
-                  isTransitioning={false}
-                  size="md"
-                />
+                <RoleBadge role={activeRole} isTransitioning={false} size="md" />
               </div>
 
               {/* Navigation */}
-              <SidebarTransition 
-                isTransitioning={false} 
-                currentRole={activeRole}
-              >
+              <SidebarTransition isTransitioning={false} currentRole={activeRole}>
                 <nav className="space-y-1">
                   {navigationItems.map((item, index) => (
                     <Link
@@ -299,13 +345,15 @@ export default function AdaptiveLayout({
         <div className="grid lg:grid-cols-4 gap-8">
           {/* Sidebar Desktop */}
           <div className="hidden lg:block lg:col-span-1">
-            <Card className={`p-6 sticky top-8 sidebar theme-${activeRole === 'producer' ? 'producer' : 'distributor'} transition-all duration-500`}>
+            <Card
+              className={`p-6 sticky top-8 sidebar theme-${activeRole === 'farmer' ? 'farmer' : 'distributor'} transition-all duration-500`}
+            >
               {/* Profil utilisateur */}
               <div className="text-center mb-6">
                 <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-3">
                   {user.avatar_url ? (
-                    <img 
-                      src={user.avatar_url} 
+                    <img
+                      src={user.avatar_url}
                       alt={user.full_name}
                       className="w-full h-full object-cover"
                     />
@@ -317,11 +365,7 @@ export default function AdaptiveLayout({
                 </div>
                 <h3 className="font-semibold text-gray-900">{user.full_name}</h3>
                 <p className="text-sm text-gray-500">{user.email}</p>
-                <RoleBadge 
-                  role={activeRole} 
-                  isTransitioning={false}
-                  size="md"
-                />
+                <RoleBadge role={activeRole} isTransitioning={false} size="md" />
               </div>
 
               {/* Role Switcher - Desktop */}
@@ -337,19 +381,14 @@ export default function AdaptiveLayout({
               )}
 
               {/* Navigation */}
-              <SidebarTransition 
-                isTransitioning={false} 
-                currentRole={activeRole}
-              >
+              <SidebarTransition isTransitioning={false} currentRole={activeRole}>
                 <nav className="space-y-1">
                   {navigationItems.map((item, index) => (
                     <Link
                       key={item.id}
                       href={item.href}
                       className={`nav-link flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all duration-300 hover:translate-y-[-1px] hover:shadow-md focus:ring-2 focus:ring-offset-2 ${
-                        activeRole === 'producer' 
-                          ? 'focus:ring-green-500' 
-                          : 'focus:ring-blue-500'
+                        activeRole === 'farmer' ? 'focus:ring-green-500' : 'focus:ring-blue-500'
                       } ${
                         isLinkActive(item.href)
                           ? 'nav-link-active font-medium'
@@ -385,9 +424,7 @@ export default function AdaptiveLayout({
 
           {/* Contenu principal */}
           <div className="lg:col-span-3">
-            <div className="animate-fade-in">
-              {children}
-            </div>
+            <div className="animate-fade-in">{children}</div>
           </div>
         </div>
       </div>

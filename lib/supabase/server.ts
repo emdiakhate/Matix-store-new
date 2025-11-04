@@ -1,12 +1,13 @@
-import { createClient } from '@supabase/supabase-js'
-import { cookies } from 'next/headers'
-import { Database } from '@/types/database.types'
+import { createClient } from '@supabase/supabase-js';
+import { createServerClient as createSSRServerClient } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { Database } from '@/types/database.types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase server environment variables')
+  throw new Error('Missing Supabase server environment variables');
 }
 
 /**
@@ -19,14 +20,14 @@ export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseService
   auth: {
     // Pas de persistence côté serveur
     persistSession: false,
-    
+
     // Auto-refresh désactivé côté serveur
     autoRefreshToken: false,
-    
+
     // Détection de session désactivée
-    detectSessionInUrl: false
-  }
-})
+    detectSessionInUrl: false,
+  },
+});
 
 /**
  * Client Supabase pour les requêtes avec session utilisateur
@@ -35,63 +36,64 @@ export const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseService
  * - Sécurisé pour les opérations utilisateur
  */
 export const createServerClient = () => {
-  const cookieStore = cookies()
-  
-  return createClient<Database>(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+  const cookieStore = cookies();
+
+  return createSSRServerClient<Database>(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value
+        return cookieStore.get(name)?.value;
       },
       set(name: string, value: string, options: any) {
-        cookieStore.set({ name, value, ...options })
+        cookieStore.set({ name, value, ...options });
       },
       remove(name: string, options: any) {
-        cookieStore.set({ name, value: '', ...options })
-      }
+        cookieStore.set({ name, value: '', ...options });
+      },
     },
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false
-    }
-  })
-}
+  });
+};
 
 /**
  * Fonction pour vérifier si les variables d'environnement serveur sont configurées
  */
 export const isServerConfigured = (): boolean => {
-  return !!(supabaseUrl && supabaseServiceKey)
-}
+  return !!(supabaseUrl && supabaseServiceKey);
+};
 
 /**
  * Fonction pour obtenir la session utilisateur côté serveur
  */
 export const getServerSession = async () => {
-  const supabase = createServerClient()
-  const { data: { session }, error } = await supabase.auth.getSession()
-  
+  const supabase = createServerClient();
+  const {
+    data: { session },
+    error,
+  } = await supabase.auth.getSession();
+
   if (error) {
-    console.error('Erreur lors de la récupération de la session:', error)
-    return null
+    console.error('Erreur lors de la récupération de la session:', error);
+    return null;
   }
-  
-  return session
-}
+
+  return session;
+};
 
 /**
  * Fonction pour obtenir l'utilisateur actuel côté serveur
  */
 export const getServerUser = async () => {
-  const supabase = createServerClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
-  if (error) {
-    console.error('Erreur lors de la récupération de l\'utilisateur:', error)
-    return null
-  }
-  
-  return user
-}
+  const supabase = createServerClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
 
-export default supabaseAdmin
+  if (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    return null;
+  }
+
+  return user;
+};
+
+export default supabaseAdmin;

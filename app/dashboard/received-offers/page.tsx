@@ -4,8 +4,36 @@ import { useState } from 'react';
 import AdaptiveLayout from '@/components/layouts/AdaptiveLayout';
 import TabButton from '@/components/ui/TabButton';
 
+// Type pour les offres reçues
+type ReceivedOffer = {
+  id: string;
+  distributor: {
+    id: string;
+    name: string;
+    avatar: string;
+    rating: number;
+    location: string;
+  };
+  product: {
+    id: string;
+    name: string;
+    image: string;
+    category: string;
+  };
+  proposedPrice: number;
+  quantity: number;
+  message: string;
+  status: string;
+  createdAt: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  rejectedAt?: string;
+  respondedAt?: string;
+  responseMessage?: string;
+};
+
 // Mock data pour les offres reçues
-const mockReceivedOffers = [
+const mockReceivedOffers: ReceivedOffer[] = [
   {
     id: '1',
     distributor: {
@@ -13,20 +41,21 @@ const mockReceivedOffers = [
       name: 'Super Marché Dakar',
       avatar: '/images/distributors/super-marche-dakar.jpg',
       rating: 4.8,
-      location: 'Dakar, Sénégal'
+      location: 'Dakar, Sénégal',
     },
     product: {
       id: '1',
       name: 'Poulets de chair',
       image: '/images/products/poulets.jpg',
-      category: 'Volaille'
+      category: 'Volaille',
     },
     proposedPrice: 2500,
     quantity: 100,
-    message: 'Nous sommes intéressés par votre lot de poulets. Pouvez-vous nous proposer un prix pour 100 unités ?',
+    message:
+      'Nous sommes intéressés par votre lot de poulets. Pouvez-vous nous proposer un prix pour 100 unités ?',
     status: 'pending',
     createdAt: '2024-01-15T10:30:00Z',
-    expiresAt: '2024-01-22T10:30:00Z'
+    expiresAt: '2024-01-22T10:30:00Z',
   },
   {
     id: '2',
@@ -35,22 +64,23 @@ const mockReceivedOffers = [
       name: 'Restaurant Le Terroir',
       avatar: '/images/distributors/restaurant-terroir.jpg',
       rating: 4.6,
-      location: 'Thiès, Sénégal'
+      location: 'Thiès, Sénégal',
     },
     product: {
       id: '2',
       name: 'Œufs frais',
       image: '/images/products/oeufs.jpg',
-      category: 'Volaille'
+      category: 'Volaille',
     },
     proposedPrice: 150,
     quantity: 500,
-    message: 'Nous cherchons des œufs frais pour notre restaurant. Livraison hebdomadaire souhaitée.',
+    message:
+      'Nous cherchons des œufs frais pour notre restaurant. Livraison hebdomadaire souhaitée.',
     status: 'accepted',
     createdAt: '2024-01-14T14:20:00Z',
     expiresAt: '2024-01-21T14:20:00Z',
     respondedAt: '2024-01-15T09:15:00Z',
-    responseMessage: 'Offre acceptée. Livraison prévue pour demain.'
+    responseMessage: 'Offre acceptée. Livraison prévue pour demain.',
   },
   {
     id: '3',
@@ -59,13 +89,13 @@ const mockReceivedOffers = [
       name: 'Épicerie Moderne',
       avatar: '/images/distributors/epicerie-moderne.jpg',
       rating: 4.4,
-      location: 'Saint-Louis, Sénégal'
+      location: 'Saint-Louis, Sénégal',
     },
     product: {
       id: '3',
       name: 'Légumes bio',
       image: '/images/products/legumes.jpg',
-      category: 'Légumes'
+      category: 'Légumes',
     },
     proposedPrice: 800,
     quantity: 50,
@@ -74,7 +104,7 @@ const mockReceivedOffers = [
     createdAt: '2024-01-13T16:45:00Z',
     expiresAt: '2024-01-20T16:45:00Z',
     respondedAt: '2024-01-14T11:30:00Z',
-    responseMessage: 'Désolé, nous n\'avons plus de stock disponible.'
+    responseMessage: "Désolé, nous n'avons plus de stock disponible.",
   },
   {
     id: '4',
@@ -83,46 +113,47 @@ const mockReceivedOffers = [
       name: 'Marché Central',
       avatar: '/images/distributors/marche-central.jpg',
       rating: 4.7,
-      location: 'Kaolack, Sénégal'
+      location: 'Kaolack, Sénégal',
     },
     product: {
       id: '1',
       name: 'Poulets de chair',
       image: '/images/products/poulets.jpg',
-      category: 'Volaille'
+      category: 'Volaille',
     },
     proposedPrice: 2400,
     quantity: 200,
     message: 'Nous cherchons un fournisseur régulier pour notre marché. Prix négociable.',
     status: 'pending',
     createdAt: '2024-01-12T08:15:00Z',
-    expiresAt: '2024-01-19T08:15:00Z'
-  }
+    expiresAt: '2024-01-19T08:15:00Z',
+  },
 ];
 
 const statusLabels = {
   pending: 'En attente',
   accepted: 'Acceptée',
   rejected: 'Refusée',
-  expired: 'Expirée'
+  expired: 'Expirée',
 };
 
 const statusColors = {
   pending: 'bg-yellow-100 text-yellow-800',
   accepted: 'bg-green-100 text-green-800',
   rejected: 'bg-red-100 text-red-800',
-  expired: 'bg-gray-100 text-gray-800'
+  expired: 'bg-gray-100 text-gray-800',
 };
 
 export default function ReceivedOffersPage() {
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedOffer, setSelectedOffer] = useState(null);
+  const [selectedOffer, setSelectedOffer] = useState<ReceivedOffer | null>(null);
 
   const filteredOffers = mockReceivedOffers.filter(offer => {
-    const matchesSearch = offer.distributor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         offer.product.name.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch =
+      offer.distributor.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      offer.product.name.toLowerCase().includes(searchTerm.toLowerCase());
+
     if (activeTab === 'all') return matchesSearch;
     return matchesSearch && offer.status === activeTab;
   });
@@ -131,7 +162,7 @@ export default function ReceivedOffersPage() {
     total: mockReceivedOffers.length,
     pending: mockReceivedOffers.filter(o => o.status === 'pending').length,
     accepted: mockReceivedOffers.filter(o => o.status === 'accepted').length,
-    rejected: mockReceivedOffers.filter(o => o.status === 'rejected').length
+    rejected: mockReceivedOffers.filter(o => o.status === 'rejected').length,
   };
 
   const formatDate = (dateString: string) => {
@@ -140,7 +171,7 @@ export default function ReceivedOffersPage() {
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   };
 
@@ -187,28 +218,16 @@ export default function ReceivedOffersPage() {
 
         {/* Onglets */}
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
-          <TabButton
-            active={activeTab === 'all'}
-            onClick={() => setActiveTab('all')}
-          >
+          <TabButton active={activeTab === 'all'} onClick={() => setActiveTab('all')}>
             Toutes ({stats.total})
           </TabButton>
-          <TabButton
-            active={activeTab === 'pending'}
-            onClick={() => setActiveTab('pending')}
-          >
+          <TabButton active={activeTab === 'pending'} onClick={() => setActiveTab('pending')}>
             En attente ({stats.pending})
           </TabButton>
-          <TabButton
-            active={activeTab === 'accepted'}
-            onClick={() => setActiveTab('accepted')}
-          >
+          <TabButton active={activeTab === 'accepted'} onClick={() => setActiveTab('accepted')}>
             Acceptées ({stats.accepted})
           </TabButton>
-          <TabButton
-            active={activeTab === 'rejected'}
-            onClick={() => setActiveTab('rejected')}
-          >
+          <TabButton active={activeTab === 'rejected'} onClick={() => setActiveTab('rejected')}>
             Refusées ({stats.rejected})
           </TabButton>
         </div>
@@ -220,7 +239,7 @@ export default function ReceivedOffersPage() {
               type="text"
               placeholder="Rechercher par distributeur ou produit..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
@@ -256,7 +275,7 @@ export default function ReceivedOffersPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOffers.map((offer) => (
+                {filteredOffers.map(offer => (
                   <tr key={offer.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -271,9 +290,7 @@ export default function ReceivedOffersPage() {
                           <div className="text-sm font-medium text-gray-900">
                             {offer.distributor.name}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {offer.distributor.location}
-                          </div>
+                          <div className="text-sm text-gray-500">{offer.distributor.location}</div>
                         </div>
                       </div>
                     </td>
@@ -290,9 +307,7 @@ export default function ReceivedOffersPage() {
                           <div className="text-sm font-medium text-gray-900">
                             {offer.product.name}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            {offer.product.category}
-                          </div>
+                          <div className="text-sm text-gray-500">{offer.product.category}</div>
                         </div>
                       </div>
                     </td>
@@ -303,8 +318,10 @@ export default function ReceivedOffersPage() {
                       {offer.proposedPrice.toLocaleString()} FCFA
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[offer.status]}`}>
-                        {statusLabels[offer.status]}
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${statusColors[offer.status as keyof typeof statusColors]}`}
+                      >
+                        {statusLabels[offer.status as keyof typeof statusLabels]}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -349,16 +366,19 @@ export default function ReceivedOffersPage() {
             <div className="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
               <div className="mt-3">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    Détails de l'offre
-                  </h3>
+                  <h3 className="text-lg font-medium text-gray-900">Détails de l'offre</h3>
                   <button
                     onClick={() => setSelectedOffer(null)}
                     className="text-gray-400 hover:text-gray-600"
                   >
                     <span className="sr-only">Fermer</span>
                     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                 </div>
@@ -366,7 +386,9 @@ export default function ReceivedOffersPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Distributeur</label>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Distributeur
+                      </label>
                       <p className="mt-1 text-sm text-gray-900">{selectedOffer.distributor.name}</p>
                     </div>
                     <div>
@@ -381,8 +403,12 @@ export default function ReceivedOffersPage() {
                       <p className="mt-1 text-sm text-gray-900">{selectedOffer.quantity}</p>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Prix proposé</label>
-                      <p className="mt-1 text-sm text-gray-900">{selectedOffer.proposedPrice.toLocaleString()} FCFA</p>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Prix proposé
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {selectedOffer.proposedPrice.toLocaleString()} FCFA
+                      </p>
                     </div>
                   </div>
 
@@ -393,12 +419,18 @@ export default function ReceivedOffersPage() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Date de création</label>
-                      <p className="mt-1 text-sm text-gray-900">{formatDate(selectedOffer.createdAt)}</p>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Date de création
+                      </label>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {formatDate(selectedOffer.createdAt)}
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Expire le</label>
-                      <p className="mt-1 text-sm text-gray-900">{formatDate(selectedOffer.expiresAt)}</p>
+                      <p className="mt-1 text-sm text-gray-900">
+                        {formatDate(selectedOffer.expiresAt)}
+                      </p>
                     </div>
                   </div>
 
@@ -406,7 +438,9 @@ export default function ReceivedOffersPage() {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Réponse</label>
                       <p className="mt-1 text-sm text-gray-900">{selectedOffer.responseMessage}</p>
-                      <p className="mt-1 text-xs text-gray-500">Répondu le {formatDate(selectedOffer.respondedAt)}</p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        Répondu le {formatDate(selectedOffer.respondedAt)}
+                      </p>
                     </div>
                   )}
 

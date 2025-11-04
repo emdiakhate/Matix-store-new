@@ -4,27 +4,27 @@ import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 
 interface RoleBadgeProps {
-  role: 'producer' | 'distributor';
+  role: 'farmer' | 'distributor';
   isTransitioning?: boolean;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export default function RoleBadge({ 
-  role, 
-  isTransitioning = false, 
+export default function RoleBadge({
+  role,
+  isTransitioning = false,
   size = 'md',
-  className = '' 
+  className = '',
 }: RoleBadgeProps) {
   const getRoleConfig = (role: string) => {
-    if (role === 'producer') {
+    if (role === 'farmer') {
       return {
         icon: '🌾',
         label: 'Producteur',
         bgColor: 'bg-green-100',
         textColor: 'text-green-700',
         borderColor: 'border-green-200',
-        accentColor: 'text-green-600'
+        accentColor: 'text-green-600',
       };
     } else {
       return {
@@ -33,7 +33,7 @@ export default function RoleBadge({
         bgColor: 'bg-blue-100',
         textColor: 'text-blue-700',
         borderColor: 'border-blue-200',
-        accentColor: 'text-blue-600'
+        accentColor: 'text-blue-600',
       };
     }
   };
@@ -55,32 +55,26 @@ export default function RoleBadge({
     <motion.div
       key={role}
       initial={{ scale: 0.8, opacity: 0 }}
-      animate={{ 
-        scale: isTransitioning ? 1.05 : 1, 
-        opacity: 1 
+      animate={{
+        scale: isTransitioning ? 1.05 : 1,
+        opacity: 1,
       }}
-      transition={{ 
-        duration: 0.5, 
-        ease: "easeInOut",
-        type: "spring",
+      transition={{
+        duration: 0.5,
+        ease: 'easeInOut',
+        type: 'spring',
         stiffness: 300,
-        damping: 30
+        damping: 30,
       }}
       className={className}
     >
       <motion.div
         animate={{
-          backgroundColor: role === 'producer' 
-            ? 'rgb(220, 252, 231)' 
-            : 'rgb(219, 234, 254)',
-          borderColor: role === 'producer' 
-            ? 'rgb(187, 247, 208)' 
-            : 'rgb(191, 219, 254)',
-          color: role === 'producer' 
-            ? 'rgb(21, 128, 61)' 
-            : 'rgb(29, 78, 216)'
+          backgroundColor: role === 'farmer' ? 'rgb(220, 252, 231)' : 'rgb(219, 234, 254)',
+          borderColor: role === 'farmer' ? 'rgb(187, 247, 208)' : 'rgb(191, 219, 254)',
+          color: role === 'farmer' ? 'rgb(21, 128, 61)' : 'rgb(29, 78, 216)',
         }}
-        transition={{ duration: 0.5, ease: "easeInOut" }}
+        transition={{ duration: 0.5, ease: 'easeInOut' }}
         className={`
           inline-flex items-center gap-1 rounded-full border font-medium
           ${getSizeClasses()}
@@ -90,13 +84,13 @@ export default function RoleBadge({
         `}
       >
         <motion.span
-          animate={{ 
-            rotate: isTransitioning ? [0, 10, -10, 0] : 0 
+          animate={{
+            rotate: isTransitioning ? [0, 10, -10, 0] : 0,
           }}
-          transition={{ 
-            duration: 0.6, 
-            ease: "easeInOut",
-            repeat: isTransitioning ? 1 : 0
+          transition={{
+            duration: 0.6,
+            ease: 'easeInOut',
+            repeat: isTransitioning ? 1 : 0,
           }}
           className="text-sm"
         >

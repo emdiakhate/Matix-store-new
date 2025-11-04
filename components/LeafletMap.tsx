@@ -31,14 +31,16 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
         setError(null);
 
         // Charger Leaflet dynamiquement
-        const L = (await import('leaflet')).default;
-        
+        const L = (await import('leaflet')).default as any;
+
         // Importer les images de marqueurs
-        delete (L.Icon.Default.prototype as any)._getIconUrl;
+        delete L.Icon.Default.prototype._getIconUrl;
         L.Icon.Default.mergeOptions({
-          iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+          iconRetinaUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
           iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-          shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+          shadowUrl:
+            'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
         });
 
         // Créer la carte
@@ -46,7 +48,8 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
 
         // Ajouter les tuiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         }).addTo(map);
 
         // Créer un marqueur personnalisé
@@ -75,7 +78,7 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
           className: 'custom-farm-marker',
           iconSize: [30, 30],
           iconAnchor: [15, 30],
-          popupAnchor: [0, -30]
+          popupAnchor: [0, -30],
         });
 
         // Ajouter le marqueur
@@ -106,7 +109,7 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
         mapInstance.current = map;
         setIsLoading(false);
       } catch (err) {
-        console.error('Erreur lors de l\'initialisation de la carte:', err);
+        console.error("Erreur lors de l'initialisation de la carte:", err);
         setError('Erreur lors du chargement de la carte');
         setIsLoading(false);
       }
@@ -148,25 +151,19 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
           <MapPin className="h-5 w-5 text-green-600" />
           Position de votre ferme sur la carte
         </h3>
-        
+
         <div className="h-[300px] bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200">
           <div className="text-center">
             <MapPin className="h-12 w-12 text-red-500 mx-auto mb-3" />
-            <h4 className="font-semibold text-gray-900 mb-2">
-              {farmName || 'Votre ferme'}
-            </h4>
-            {address && (
-              <p className="text-sm text-gray-600 mb-2">{address}</p>
-            )}
+            <h4 className="font-semibold text-gray-900 mb-2">{farmName || 'Votre ferme'}</h4>
+            {address && <p className="text-sm text-gray-600 mb-2">{address}</p>}
             <p className="text-xs text-gray-500">
               Coordonnées: {latitude.toFixed(6)}, {longitude.toFixed(6)}
             </p>
-            <p className="text-xs text-red-400 mt-2">
-              {error}
-            </p>
+            <p className="text-xs text-red-400 mt-2">{error}</p>
           </div>
         </div>
-        
+
         <div className="mt-3 text-xs text-gray-500 text-center">
           Position GPS confirmée • Carte interactive en cours de chargement
         </div>
@@ -180,7 +177,7 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
         <MapPin className="h-5 w-5 text-green-600" />
         Position de votre ferme sur la carte
       </h3>
-      
+
       <div className="relative">
         {isLoading && (
           <div className="absolute inset-0 bg-gray-100 rounded-lg flex items-center justify-center z-10">
@@ -190,14 +187,14 @@ export default function LeafletMap({ latitude, longitude, farmName, address }: L
             </div>
           </div>
         )}
-        
-        <div 
-          ref={mapRef} 
+
+        <div
+          ref={mapRef}
           className="h-[300px] rounded-lg border border-gray-200"
           style={{ minHeight: '300px' }}
         />
       </div>
-      
+
       <div className="mt-3 text-xs text-gray-500 text-center">
         Carte en lecture seule • Données fournies par OpenStreetMap
       </div>

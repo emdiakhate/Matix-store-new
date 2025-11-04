@@ -129,7 +129,7 @@ export class AuthService {
 
       return {
         success: true,
-        user: authData.user,
+        user: authData.user ?? undefined,
         requiresConfirmation: !authData.session,
       };
     } catch (error) {
@@ -325,7 +325,11 @@ export class AuthService {
    */
   async getUserProfile(userId: string): Promise<UserProfile | null> {
     try {
-      const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
+      const { data, error } = await (supabase as any)
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
       if (error) {
         console.error('Erreur lors de la récupération du profil:', error);
@@ -352,7 +356,7 @@ export class AuthService {
         };
       }
 
-      const { data: profile, error } = await supabase
+      const { data: profile, error } = await (supabase as any)
         .from('users')
         .update({
           ...data,
@@ -417,7 +421,7 @@ export class AuthService {
       }
 
       // Mettre à jour le rôle actif
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('users')
         .update({
           active_role: newRole,
@@ -442,7 +446,7 @@ export class AuthService {
    */
   async getActiveRole(userId: string): Promise<string | null> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('users')
         .select('active_role')
         .eq('id', userId)

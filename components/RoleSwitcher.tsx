@@ -39,8 +39,7 @@ export default function RoleSwitcher({ size = 'md', className = '' }: RoleSwitch
     return (
       <div className={`mt-4 ${className}`}>
         <Badge variant="outline" className="w-full justify-center text-xs text-gray-500 bg-gray-50">
-          Rôle unique :{' '}
-          {activeRole === 'farmer' || activeRole === 'producer' ? 'Producteur' : 'Distributeur'}
+          Rôle unique : {activeRole === 'farmer' ? 'Producteur' : 'Distributeur'}
         </Badge>
       </div>
     );
@@ -62,9 +61,8 @@ export default function RoleSwitcher({ size = 'md', className = '' }: RoleSwitch
     setIsTransitioning(true);
 
     try {
-      // Convertir farmer/producer ↔ distributor
-      const newRole =
-        activeRole === 'farmer' || activeRole === 'producer' ? 'distributor' : 'farmer';
+      // Convertir farmer ↔ distributor
+      const newRole = activeRole === 'farmer' ? 'distributor' : 'farmer';
 
       // Appeler switchRole qui mettra à jour en DB
       await switchRole(newRole);
@@ -100,10 +98,7 @@ export default function RoleSwitcher({ size = 'md', className = '' }: RoleSwitch
           className="flex items-center gap-2"
         >
           <Check className="h-4 w-4 text-green-600" />
-          <span>
-            ✓ Passé en{' '}
-            {activeRole === 'farmer' || activeRole === 'producer' ? 'Producteur' : 'Distributeur'}
-          </span>
+          <span>✓ Passé en {activeRole === 'farmer' ? 'Producteur' : 'Distributeur'}</span>
         </motion.div>
       );
     }
@@ -116,14 +111,14 @@ export default function RoleSwitcher({ size = 'md', className = '' }: RoleSwitch
           className="flex items-center gap-2"
         >
           <Loader2
-            className={`h-4 w-4 animate-spin ${activeRole === 'farmer' || activeRole === 'producer' ? 'text-green-600' : 'text-blue-600'}`}
+            className={`h-4 w-4 animate-spin ${activeRole === 'farmer' ? 'text-green-600' : 'text-blue-600'}`}
           />
           <span>Changement...</span>
         </motion.div>
       );
     }
 
-    if (activeRole === 'farmer' || activeRole === 'producer') {
+    if (activeRole === 'farmer') {
       return (
         <motion.div
           initial={{ opacity: 0 }}
@@ -185,7 +180,7 @@ export default function RoleSwitcher({ size = 'md', className = '' }: RoleSwitch
             focus:ring-2 focus:ring-offset-2 focus:ring-green-500
             ${isTransitioning ? 'bg-green-50 border-green-200' : ''}
             ${showAttention ? 'animate-bounce-attention' : ''}
-            ${activeRole === 'farmer' || activeRole === 'producer' ? 'farmer-theme' : 'distributor-theme'}
+            ${activeRole === 'farmer' ? 'farmer-theme' : 'distributor-theme'}
           `}
         >
           {getButtonContent()}
