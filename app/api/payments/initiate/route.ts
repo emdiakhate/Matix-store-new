@@ -55,27 +55,55 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Enregistrer la transaction dans Supabase
+    // Enregistrer la transaction dans Supabase (schéma existant + nouveaux champs)
     const supabase = createServerClient();
+
+    // Récupérer l'user_id de la commande si disponible
+    const { data: orderData } = await (supabase as any)
+      .from('orders')
+      .select('buyer_id')
+      .eq('id', orderId)
+      .single();
+
     const { error: dbError } = await (supabase as any).from('payments').insert({
+      // Champs obligatoires du schéma existant
+      user_id: orderData?.buyer_id || null,
       order_id: orderId,
-      transaction_id: paymentResult.transaction_id,
-      reference,
+      subscription_id: null,
       amount,
-      currency: 'XOF',
-      status: 'pending',
-      provider: 'bictorys',
+      payment_method: null, // On le mettra à jour après confirmation du paiement
+      status: 'pending', // ENUM payment_status
+      transaction_id: paymentResult.transaction_id,
+      payment_data: {
+        provider: 'bictorys',
+        environment: bictorysClient.isSandbox() ? 'sandbox' : 'production',
+        created_at: new Date().toISOString(),
+      },
+
+      // Nouveaux champs pour Bictorys (ajoutés par migration)
+      reference,
+      customer_email: customerEmail,
+      customer_phone: customerPhone,
+      customer_name: customerName,
+      bictorys_transaction_id: paymentResult.transaction_id,
+      bictorys_status: 'pending',
       payment_url: paymentResult.payment_url,
       metadata: {
-        customer_email: customerEmail,
-        customer_phone: customerPhone,
-        customer_name: customerName,
+        order_id: orderId,
+        customer: {
+          email: customerEmail,
+          phone: customerPhone,
+          name: customerName,
+        },
+        platform: 'matix-store',
       },
     });
 
     if (dbError) {
       console.error('⚠️  Erreur sauvegarde transaction dans DB:', dbError);
-      // On continue quand même, le paiement est initié
+      // On continue quand même, le paiement est initié côté Bictorys
+    } else {
+      console.log('✅ Transaction sauvegardée dans la DB');
     }
 
     console.log('✅ Paiement initié avec succès:', paymentResult.transaction_id);
