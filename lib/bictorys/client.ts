@@ -56,7 +56,7 @@ class BictorysClient {
   private secretKey: string;
 
   constructor() {
-    this.baseURL = process.env.BICTORYS_BASE_URL || 'https://api.bictorys.com';
+    this.baseURL = process.env.BICTORYS_BASE_URL || 'https://api.test.bictorys.com';
     this.secretKey = process.env.BICTORYS_SECRET_KEY || '';
 
     if (!this.secretKey) {
@@ -69,7 +69,8 @@ class BictorysClient {
    */
   private getHeaders(): HeadersInit {
     return {
-      'Content-Type': 'application/json',
+      accept: 'application/json',
+      'content-type': 'application/json',
       Authorization: `Bearer ${this.secretKey}`,
     };
   }
@@ -95,7 +96,7 @@ class BictorysClient {
         amount: data.amount,
       });
 
-      const response = await fetch(`${this.baseURL}/v1/payments`, {
+      const response = await fetch(`${this.baseURL}/pay/v1/payments`, {
         method: 'POST',
         headers: this.getHeaders(),
         body: JSON.stringify(payload),
@@ -137,7 +138,7 @@ class BictorysClient {
     try {
       console.log('🔍 Vérification statut transaction:', transactionId);
 
-      const response = await fetch(`${this.baseURL}/v1/transactions/${transactionId}`, {
+      const response = await fetch(`${this.baseURL}/pay/v1/transactions/${transactionId}`, {
         method: 'GET',
         headers: this.getHeaders(),
       });
@@ -175,7 +176,7 @@ class BictorysClient {
     try {
       console.log('🔍 Recherche transaction par référence:', reference);
 
-      const response = await fetch(`${this.baseURL}/v1/transactions?reference=${reference}`, {
+      const response = await fetch(`${this.baseURL}/pay/v1/transactions?reference=${reference}`, {
         method: 'GET',
         headers: this.getHeaders(),
       });

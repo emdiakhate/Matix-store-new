@@ -47,6 +47,10 @@ export function usePayment() {
             customer_name: data.customerName,
             total_amount: data.amount,
             user_id: user?.id,
+            items: data.metadata?.cart_items || [],
+            shipping_address: data.metadata?.shipping_address || {},
+            shipping_method: data.metadata?.shipping_method || null,
+            payment_method: data.metadata?.payment_method || null,
           }),
         });
 
