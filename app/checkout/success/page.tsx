@@ -145,7 +145,9 @@ export default function CheckoutSuccessPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-600">Statut :</span>
                   <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                    {paymentDetails.status === 'success' ? 'Payé' : paymentDetails.status}
+                    {paymentDetails.status === 'paid' || paymentDetails.status === 'success'
+                      ? 'Payé'
+                      : paymentDetails.status}
                   </span>
                 </div>
               </div>

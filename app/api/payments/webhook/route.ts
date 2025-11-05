@@ -52,7 +52,21 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerClient();
 
-    // Mettre à jour le statut du paiement dans la DB
+    // Mapper les statuts Bictorys vers les valeurs ENUM de la DB
+    // Bictorys: success, pending, failed, cancelled
+    // DB payment_status: pending, paid, failed, refunded
+    // DB order_status: pending, confirmed, shipped, delivered, cancelled
+    const mapBictorysStatus = (bictorysStatus: string): string => {
+      const statusMap: Record<string, string> = {
+        success: 'paid',
+        pending: 'pending',
+        failed: 'failed',
+        cancelled: 'failed', // Mapper cancelled vers failed pour payment_status
+      };
+      return statusMap[bictorysStatus] || 'pending';
+    };
+
+    // Récupérer le paiement existant
     const { data: payment, error: fetchError } = await (supabase as any)
       .from('payments')
       .select('*, orders(*)')
@@ -65,75 +79,103 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Mettre à jour le statut du paiement
-    const { error: updateError } = await (supabase as any)
-      .from('payments')
-      .update({
-        status: status || payment.status,
-        payment_method: payment_method || payment.payment_method,
-        webhook_data: payload,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('transaction_id', transactionId);
-
-    if (updateError) {
-      console.error('❌ Erreur mise à jour paiement:', updateError);
-    }
-
     // Traiter selon le type d'événement
     switch (eventType) {
       case 'payment.success':
+      case 'payment_success':
         console.log('✅ Paiement réussi:', transactionId);
 
-        // Mettre à jour la commande comme payée
+        // Mettre à jour le paiement avec payment_status = 'paid'
+        await (supabase as any)
+          .from('payments')
+          .update({
+            status: 'paid', // payment_status ENUM
+            payment_method: payment_method || 'bictorys', // payment_method ENUM
+            bictorys_status: 'success', // Garder le statut Bictorys original
+            updated_at: new Date().toISOString(),
+          })
+          .eq('transaction_id', transactionId);
+
+        // Mettre à jour la commande avec order_status = 'confirmed'
         if (payment.order_id) {
           await (supabase as any)
             .from('orders')
             .update({
-              status: 'paid',
-              payment_status: 'completed',
+              status: 'confirmed', // order_status ENUM
+              payment_status: 'paid', // payment_status ENUM
+              payment_method: 'bictorys', // payment_method ENUM
               updated_at: new Date().toISOString(),
             })
             .eq('id', payment.order_id);
 
-          // TODO: Envoyer email/SMS de confirmation au client
-          // TODO: Notifier le vendeur de la nouvelle commande
+          console.log('✅ Commande confirmée:', payment.order_id);
         }
         break;
 
       case 'payment.failed':
+      case 'payment_failed':
         console.log('❌ Paiement échoué:', transactionId);
+
+        await (supabase as any)
+          .from('payments')
+          .update({
+            status: 'failed', // payment_status ENUM
+            bictorys_status: 'failed',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('transaction_id', transactionId);
 
         if (payment.order_id) {
           await (supabase as any)
             .from('orders')
             .update({
-              payment_status: 'failed',
+              payment_status: 'failed', // payment_status ENUM
               updated_at: new Date().toISOString(),
             })
             .eq('id', payment.order_id);
-
-          // TODO: Notifier le client de l'échec
         }
         break;
 
       case 'payment.cancelled':
+      case 'payment_cancelled':
         console.log('⚠️  Paiement annulé:', transactionId);
 
+        await (supabase as any)
+          .from('payments')
+          .update({
+            status: 'failed', // payment_status: mapper cancelled → failed
+            bictorys_status: 'cancelled', // Garder le statut Bictorys original
+            updated_at: new Date().toISOString(),
+          })
+          .eq('transaction_id', transactionId);
+
+        // Annuler la commande avec order_status = 'cancelled'
         if (payment.order_id) {
           await (supabase as any)
             .from('orders')
             .update({
-              payment_status: 'cancelled',
-              status: 'cancelled',
+              status: 'cancelled', // order_status ENUM
+              payment_status: 'failed', // payment_status ENUM
               updated_at: new Date().toISOString(),
             })
             .eq('id', payment.order_id);
+
+          console.log('⚠️  Commande annulée:', payment.order_id);
         }
         break;
 
       case 'payment.pending':
+      case 'payment_pending':
         console.log('⏳ Paiement en attente:', transactionId);
+
+        await (supabase as any)
+          .from('payments')
+          .update({
+            status: 'pending', // payment_status ENUM
+            bictorys_status: 'pending',
+            updated_at: new Date().toISOString(),
+          })
+          .eq('transaction_id', transactionId);
         break;
 
       default:

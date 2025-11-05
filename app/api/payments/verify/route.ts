@@ -32,13 +32,29 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Transaction non trouvée' }, { status: 404 });
     }
 
+    // Mapper les statuts Bictorys vers les valeurs ENUM de la DB
+    // Bictorys: success, pending, failed, cancelled
+    // DB payment_status: pending, paid, failed, refunded
+    const mapBictorysStatus = (bictorysStatus: string): string => {
+      const statusMap: Record<string, string> = {
+        success: 'paid', // Bictorys success → DB paid
+        pending: 'pending', // Bictorys pending → DB pending
+        failed: 'failed', // Bictorys failed → DB failed
+        cancelled: 'failed', // Bictorys cancelled → DB failed
+      };
+      return statusMap[bictorysStatus] || 'pending';
+    };
+
+    const dbStatus = mapBictorysStatus(transactionStatus.status);
+
     // Mettre à jour le statut dans Supabase
     const supabase = createServerClient();
     const { error: updateError } = await (supabase as any)
       .from('payments')
       .update({
-        status: transactionStatus.status,
-        payment_method: transactionStatus.payment_method,
+        status: dbStatus,
+        bictorys_status: transactionStatus.status, // Garder le statut original Bictorys
+        payment_method: transactionStatus.payment_method || 'bictorys',
         updated_at: new Date().toISOString(),
       })
       .eq('transaction_id', transactionStatus.transaction_id);
@@ -48,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Si le paiement est réussi, mettre à jour le statut de la commande
-    if (transactionStatus.status === 'success') {
+    if (dbStatus === 'paid') {
       const { data: payment } = await (supabase as any)
         .from('payments')
         .select('order_id')
@@ -59,21 +75,28 @@ export async function GET(request: NextRequest) {
         await (supabase as any)
           .from('orders')
           .update({
-            status: 'paid',
-            payment_status: 'completed',
+            status: 'confirmed', // order_status ENUM
+            payment_status: 'paid', // payment_status ENUM
+            payment_method: 'bictorys', // payment_method ENUM
             updated_at: new Date().toISOString(),
           })
           .eq('id', payment.order_id);
 
-        console.log('✅ Commande marquée comme payée:', payment.order_id);
+        console.log('✅ Commande confirmée:', payment.order_id);
       }
     }
 
-    console.log('✅ Statut vérifié:', transactionStatus.status);
+    console.log('✅ Statut vérifié:', transactionStatus.status, '→', dbStatus);
 
     return NextResponse.json({
       success: true,
-      transaction: transactionStatus,
+      payment: {
+        transaction_id: transactionStatus.transaction_id,
+        reference: transactionStatus.reference,
+        status: dbStatus,
+        bictorys_status: transactionStatus.status,
+        amount: transactionStatus.amount,
+      },
     });
   } catch (error) {
     console.error('❌ Erreur API verify payment:', error);
