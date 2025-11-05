@@ -120,8 +120,7 @@ export default function Header() {
         return [
           { href: '/', label: 'Accueil' },
           { href: '/dashboard/distributor/search', label: 'Producteurs' },
-          { href: '/dashboard/distributor/clients', label: 'Clients' },
-          { href: '/dashboard/distributor/brand', label: 'Ma Marque' },
+          { href: '/dashboard/distributor/achats', label: 'Achats' },
           { href: '/dashboard/distributor/alerts', label: 'Alertes' },
         ];
       case 'client':
@@ -152,10 +151,9 @@ export default function Header() {
         ];
       case 'distributor':
         return [
-          { href: '/dashboard/profile', label: 'Mon Profil', icon: UserIcon },
+          { href: '/dashboard/distributor/profile', label: 'Mon Profil', icon: UserIcon },
           { href: '/dashboard/distributor/search', label: 'Rechercher', icon: Search },
-          { href: '/dashboard/distributor/clients', label: 'Mes Clients', icon: Users },
-          { href: '/dashboard/distributor/brand', label: 'Ma Marque', icon: Store },
+          { href: '/dashboard/distributor/achats', label: 'Mes Achats', icon: Package },
           { href: '/dashboard/distributor/alerts', label: 'Alertes', icon: Bell },
         ];
       case 'client':
