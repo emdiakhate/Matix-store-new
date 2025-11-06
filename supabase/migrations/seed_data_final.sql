@@ -95,7 +95,7 @@ INSERT INTO public.products (
   'Œufs Frais de Ferme (30 unités)',
   'Œufs extra-frais pondus du jour. Poules élevées en plein air. Alimentation naturelle.',
   3000,
-  100, 100, 'plateau',
+  100, 100, 'lot',
   ARRAY['https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=800'],
   NULL, NULL, NULL, NULL
 ),
@@ -117,7 +117,7 @@ INSERT INTO public.products (
   'Œufs Bio Certifiés (12 unités)',
   'Œufs bio certifiés. Poules nourries 100% bio. Label AB. Conditionnement carton recyclé.',
   2500,
-  80, 80, 'boite',
+  80, 80, 'piece',
   ARRAY['https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=800'],
   NULL, NULL, NULL, NULL
 ),
@@ -226,7 +226,7 @@ INSERT INTO public.products (
   'Œufs Caille (100 unités)',
   'Œufs de caille frais. Riches en nutriments. Idéal consommation et reproduction.',
   5000,
-  50, 50, 'plateau',
+  50, 50, 'lot',
   ARRAY['https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=800'],
   NULL, NULL, NULL, NULL
 ),
@@ -237,7 +237,7 @@ INSERT INTO public.products (
   'Œufs Frais Fermiers (60 unités)',
   'Plateau de 60 œufs extra-frais. Production quotidienne. Poules nourries au maïs.',
   5500,
-  60, 60, 'plateau',
+  60, 60, 'lot',
   ARRAY['https://images.pexels.com/photos/162712/egg-white-food-protein-162712.jpeg?auto=compress&cs=tinysrgb&w=800'],
   NULL, NULL, NULL, NULL
 ),
