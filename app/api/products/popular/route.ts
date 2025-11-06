@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Récupérer les produits populaires (limités à 15)
-    // Triés par quantité disponible (plus populaires) et note moyenne
+    // Triés par quantité disponible (plus populaires)
     const { data: products, error } = await supabase
       .from('products')
       .select(
@@ -18,18 +18,16 @@ export async function GET(request: NextRequest) {
         name,
         price,
         images,
-        average_rating,
         stock_quantity,
         producer:producer_id (
           id,
           business_name,
-          farm_name
+          farm_name,
+          full_name
         )
       `
       )
-      .eq('is_active', true)
       .gte('stock_quantity', 1)
-      .order('average_rating', { ascending: false })
       .order('stock_quantity', { ascending: false })
       .limit(15);
 
@@ -47,12 +45,15 @@ export async function GET(request: NextRequest) {
         id: product.id,
         name: product.name,
         price: product.price.toString(),
-        rating: product.average_rating || 4.5,
+        rating: 4.5, // Rating par défaut
         image:
           product.images?.[0] ||
           'https://images.pexels.com/photos/1556909/pexels-photo-1556909.jpeg?auto=compress&cs=tinysrgb&w=400',
         producer:
-          product.producer?.business_name || product.producer?.farm_name || 'Producteur Matix',
+          product.producer?.business_name ||
+          product.producer?.farm_name ||
+          product.producer?.full_name ||
+          'Producteur Matix',
       })) || [];
 
     return NextResponse.json({ products: formattedProducts }, { status: 200 });

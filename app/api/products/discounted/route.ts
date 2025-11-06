@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Récupérer les produits en promotion (avec discount)
+    // Récupérer les produits avec prix distributeur (simulant une promotion)
     // Limités à 15 produits
     const { data: products, error } = await supabase
       .from('products')
@@ -17,22 +17,20 @@ export async function GET(request: NextRequest) {
         id,
         name,
         price,
-        discount_price,
-        discount_percentage,
+        distributor_price,
         images,
-        average_rating,
+        stock_quantity,
         producer:producer_id (
           id,
           business_name,
-          farm_name
+          farm_name,
+          full_name
         )
       `
       )
-      .eq('is_active', true)
-      .eq('is_on_sale', true)
-      .not('discount_price', 'is', null)
+      .not('distributor_price', 'is', null)
       .gte('stock_quantity', 1)
-      .order('discount_percentage', { ascending: false })
+      .order('stock_quantity', { ascending: false })
       .limit(15);
 
     if (error) {
@@ -47,23 +45,27 @@ export async function GET(request: NextRequest) {
     const formattedProducts =
       products?.map((product: any) => {
         const originalPrice = product.price;
-        const discountedPrice = product.discount_price || product.price;
+        const discountedPrice = product.distributor_price || product.price;
         const discountPercentage =
-          product.discount_percentage ||
-          Math.round(((originalPrice - discountedPrice) / originalPrice) * 100);
+          product.distributor_price && product.distributor_price < product.price
+            ? Math.round(((originalPrice - discountedPrice) / originalPrice) * 100)
+            : 0;
 
         return {
           id: product.id,
           name: product.name,
           price: discountedPrice.toString(),
           originalPrice: originalPrice.toString(),
-          discount: `-${discountPercentage}%`,
-          rating: product.average_rating || 4.5,
+          discount: discountPercentage > 0 ? `-${discountPercentage}%` : '',
+          rating: 4.5, // Rating par défaut
           image:
             product.images?.[0] ||
             'https://images.pexels.com/photos/1556909/pexels-photo-1556909.jpeg?auto=compress&cs=tinysrgb&w=400',
           producer:
-            product.producer?.business_name || product.producer?.farm_name || 'Producteur Matix',
+            product.producer?.business_name ||
+            product.producer?.farm_name ||
+            product.producer?.full_name ||
+            'Producteur Matix',
         };
       }) || [];
 
