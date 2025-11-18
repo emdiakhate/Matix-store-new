@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -20,8 +20,10 @@ interface Category {
   name: string;
 }
 
-export default function AddProductPage() {
+export default function EditProductPage() {
   const router = useRouter();
+  const params = useParams();
+  const productId = params.id as string;
   const { user, activeRole, loading: userLoading, isAuthenticated } = useMatixUser();
   const supabase = useSupabase();
 
@@ -34,7 +36,8 @@ export default function AddProductPage() {
     category_id: '',
     description: '',
     unit: 'pièce',
-    min_order_quantity: '1'
+    min_order_quantity: '1',
+    is_active: true
   });
 
   useEffect(() => {
@@ -48,20 +51,47 @@ export default function AddProductPage() {
       return;
     }
 
-    if (user && activeRole === 'producer') {
-      loadCategories();
+    if (user && activeRole === 'producer' && productId) {
+      loadData();
     }
-  }, [user, activeRole, userLoading, isAuthenticated, router]);
+  }, [user, activeRole, userLoading, isAuthenticated, router, productId]);
 
-  const loadCategories = async () => {
+  const loadData = async () => {
+    if (!user) return;
+
     try {
       setLoading(true);
-      const result = await categoryService.getAll();
-      if (result.data) {
-        setCategories(result.data);
+
+      const [categoriesResult, productResult] = await Promise.all([
+        categoryService.getAll(),
+        supabase
+          .from('products')
+          .select('*')
+          .eq('id', productId)
+          .eq('producer_id', user.id)
+          .single()
+      ]);
+
+      if (categoriesResult.data) {
+        setCategories(categoriesResult.data);
+      }
+
+      if (productResult.data) {
+        setFormData({
+          name: productResult.data.name,
+          category_id: productResult.data.category_id,
+          description: productResult.data.description || '',
+          unit: productResult.data.unit,
+          min_order_quantity: productResult.data.min_order_quantity.toString(),
+          is_active: productResult.data.is_active
+        });
+        setImages(productResult.data.images || []);
+      } else {
+        router.push('/dashboard/products');
       }
     } catch (error) {
-      console.error('Erreur chargement catégories:', error);
+      console.error('Erreur chargement:', error);
+      router.push('/dashboard/products');
     } finally {
       setLoading(false);
     }
@@ -101,27 +131,26 @@ export default function AddProductPage() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('products')
-        .insert({
-          producer_id: user.id,
+        .update({
           name: formData.name,
           category_id: formData.category_id,
           description: formData.description || null,
           unit: formData.unit,
           min_order_quantity: parseInt(formData.min_order_quantity) || 1,
           images: images,
-          is_active: true
+          is_active: formData.is_active
         })
-        .select()
-        .single();
+        .eq('id', productId)
+        .eq('producer_id', user.id);
 
       if (error) throw error;
 
       router.push('/dashboard/products');
     } catch (error) {
-      console.error('Erreur création produit:', error);
-      alert('Erreur lors de la création du produit');
+      console.error('Erreur mise à jour produit:', error);
+      alert('Erreur lors de la mise à jour du produit');
     } finally {
       setSaving(false);
     }
@@ -149,7 +178,7 @@ export default function AddProductPage() {
               Retour
             </Button>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Ajouter un produit</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Modifier le produit</h1>
         </div>
 
         <Card className="p-6">
@@ -230,6 +259,19 @@ export default function AddProductPage() {
               </div>
             </div>
 
+            {/* Statut */}
+            <div>
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={formData.is_active}
+                  onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                  className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+                />
+                <span className="text-sm font-medium text-gray-700">Produit actif</span>
+              </label>
+            </div>
+
             {/* Images */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -297,7 +339,7 @@ export default function AddProductPage() {
                     Enregistrement...
                   </>
                 ) : (
-                  'Créer le produit'
+                  'Enregistrer'
                 )}
               </Button>
             </div>
