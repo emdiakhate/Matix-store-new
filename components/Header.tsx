@@ -1,49 +1,51 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { Search, Heart, ShoppingCart, User as UserIcon, Menu, X, Mic, Bell, ChevronDown, BarChart3, Package, Edit, Lock, TrendingUp, Store, Users, FileText, DollarSign, Home } from 'lucide-react';
+import {
+  Search, Heart, ShoppingCart, User as UserIcon, Menu, X, Mic, Bell,
+  ChevronDown, BarChart3, Package, Lock, TrendingUp, Store, Users,
+  FileText, Home, ArrowLeftRight, AlertCircle, MessageSquare
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import CartSidebar from './CartSidebar';
 import AuthModal from './AuthModal';
-import { useAuth } from '@/hooks/useSupabase';
-import { userService } from '@/lib/services';
+import { useMatixUser, useCart, useNotifications } from '@/hooks/useSupabase';
+import { UserRole } from '@/lib/types';
 
 export default function Header() {
-  const { user, signOut } = useAuth();
+  const {
+    user,
+    profile,
+    activeRole,
+    loading,
+    isAuthenticated,
+    canSwitchToDistributor,
+    switchRole,
+    enableDistributorRole
+  } = useMatixUser();
+
+  const { itemCount, total } = useCart();
+  const { unreadCount } = useNotifications();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [switchingRole, setSwitchingRole] = useState(false);
 
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      if (user) {
-        try {
-          const { data: profile } = await userService.getProfile(user.id);
-          setUserProfile(profile);
-        } catch (error) {
-          console.error('Erreur lors du chargement du profil:', error);
-        }
-      }
-      setLoading(false);
-    };
-
-    loadUserProfile();
-  }, [user]);
-
-  const handleLogin = (user: any) => {
-    // Le profil sera chargé automatiquement par useEffect
+  const handleLogin = () => {
     setIsAuthModalOpen(false);
   };
 
   const handleLogout = async () => {
     try {
+      const { signOut } = await import('@/hooks/useSupabase').then(m => {
+        const supabase = m.createClient();
+        return { signOut: () => supabase.auth.signOut() };
+      });
       await signOut();
-      setUserProfile(null);
       setIsProfileDropdownOpen(false);
       window.location.href = '/';
     } catch (error) {
@@ -51,94 +53,88 @@ export default function Header() {
     }
   };
 
-  const getProfileColor = (userType: string) => {
-    switch (userType) {
-      case 'producer': return 'text-green-600';
-      case 'distributor': return 'text-blue-600';
-      case 'client': return 'text-purple-600';
-      default: return 'text-gray-600';
+  const handleSwitchRole = async () => {
+    if (switchingRole) return;
+
+    setSwitchingRole(true);
+    try {
+      const newRole: UserRole = activeRole === 'producer' ? 'distributor' : 'producer';
+
+      // Si on veut passer en distributeur et ce n'est pas encore activé
+      if (newRole === 'distributor' && !canSwitchToDistributor) {
+        await enableDistributorRole();
+      }
+
+      await switchRole(newRole);
+      setIsProfileDropdownOpen(false);
+    } catch (error) {
+      console.error('Erreur lors du changement de rôle:', error);
+    } finally {
+      setSwitchingRole(false);
     }
   };
 
-  const getProfileLabel = (userType: string) => {
-    switch (userType) {
-      case 'producer': return 'Producteur';
-      case 'distributor': return 'Distributeur';
-      case 'client': return 'Client';
-      default: return '';
-    }
+  const getRoleColor = (role: UserRole) => {
+    return role === 'producer' ? 'text-green-600' : 'text-blue-600';
   };
 
-  // Navigation selon le profil
+  const getRoleLabel = (role: UserRole) => {
+    return role === 'producer' ? 'Producteur' : 'Distributeur';
+  };
+
+  const getRoleBgColor = (role: UserRole) => {
+    return role === 'producer' ? 'bg-green-100' : 'bg-blue-100';
+  };
+
+  // Navigation selon le rôle actif
   const getNavigationItems = () => {
-    if (!userProfile) {
+    if (!isAuthenticated) {
       return [
         { href: '/categories', label: 'Catégories' },
-        { href: '/marques', label: 'Marques Distributeurs' },
+        { href: '/producteurs', label: 'Producteurs' },
         { href: '/offres', label: 'Offres', isSpecial: true }
       ];
     }
 
-    switch (userProfile.user_type) {
-      case 'producer':
-        return [
-          { href: '/', label: 'Accueil' },
-          { href: '/dashboard/products', label: 'Mes Produits' },
-          { href: '/dashboard/orders', label: 'Commandes' },
-          { href: '/dashboard/stats', label: 'Statistiques' }
-        ];
-      case 'distributor':
-        return [
-          { href: '/', label: 'Accueil' },
-          { href: '/dashboard/distributor/search', label: 'Producteurs' },
-          { href: '/dashboard/distributor/clients', label: 'Clients' },
-          { href: '/dashboard/distributor/brand', label: 'Ma Marque' },
-          { href: '/dashboard/distributor/alerts', label: 'Alertes' }
-        ];
-      case 'client':
-        return [
-          { href: '/', label: 'Accueil' },
-          { href: '/categories', label: 'Catégories' },
-          { href: '/dashboard/client/orders', label: 'Mes Commandes' },
-          { href: '/dashboard/client/requests', label: 'Demandes' },
-          { href: '/dashboard/client/favorites', label: 'Favoris' }
-        ];
-      default:
-        return [];
+    if (activeRole === 'producer') {
+      return [
+        { href: '/', label: 'Accueil' },
+        { href: '/dashboard/products', label: 'Mes Produits' },
+        { href: '/dashboard/orders', label: 'Commandes' },
+        { href: '/dashboard/stats', label: 'Statistiques' }
+      ];
+    } else {
+      return [
+        { href: '/', label: 'Accueil' },
+        { href: '/dashboard/distributor/search', label: 'Producteurs' },
+        { href: '/dashboard/distributor/requests', label: 'Mes Demandes' },
+        { href: '/dashboard/distributor/alerts', label: 'Alertes' }
+      ];
     }
   };
 
-  // Menu dropdown selon le profil
+  // Menu dropdown selon le rôle
   const getProfileMenuItems = () => {
-    if (!userProfile) return [];
+    if (!isAuthenticated) return [];
 
-    switch (userProfile.user_type) {
-      case 'producer':
-        return [
-          { href: '/dashboard/profile', label: 'Mon Profil', icon: UserIcon },
-          { href: '/dashboard/products', label: 'Mes Produits', icon: Package },
-          { href: '/dashboard/orders', label: 'Commandes', icon: FileText },
-          { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
-          { href: '/dashboard/location', label: 'Ma Zone', icon: TrendingUp }
-        ];
-      case 'distributor':
-        return [
-          { href: '/dashboard/profile', label: 'Mon Profil', icon: UserIcon },
-          { href: '/dashboard/distributor/search', label: 'Rechercher', icon: Search },
-          { href: '/dashboard/distributor/clients', label: 'Mes Clients', icon: Users },
-          { href: '/dashboard/distributor/brand', label: 'Ma Marque', icon: Store },
-          { href: '/dashboard/distributor/alerts', label: 'Alertes', icon: Bell }
-        ];
-      case 'client':
-        return [
-          { href: '/dashboard/client/profile', label: 'Mon Profil', icon: UserIcon },
-          { href: '/dashboard/client/orders', label: 'Mes Commandes', icon: FileText },
-          { href: '/dashboard/client/requests', label: 'Mes Demandes', icon: Package },
-          { href: '/dashboard/client/favorites', label: 'Favoris', icon: Heart },
-          { href: '/dashboard/client/reviews', label: 'Avis', icon: Edit }
-        ];
-      default:
-        return [];
+    if (activeRole === 'producer') {
+      return [
+        { href: '/dashboard/profile', label: 'Mon Profil', icon: UserIcon },
+        { href: '/dashboard/products', label: 'Mes Produits', icon: Package },
+        { href: '/dashboard/orders', label: 'Commandes', icon: FileText },
+        { href: '/dashboard/stats', label: 'Statistiques', icon: BarChart3 },
+        { href: '/dashboard/location', label: 'Ma Zone', icon: TrendingUp },
+        { href: '/messages', label: 'Messages', icon: MessageSquare }
+      ];
+    } else {
+      return [
+        { href: '/dashboard/distributor/profile', label: 'Mon Profil', icon: UserIcon },
+        { href: '/dashboard/distributor/search', label: 'Rechercher', icon: Search },
+        { href: '/dashboard/distributor/requests', label: 'Mes Demandes', icon: FileText },
+        { href: '/dashboard/distributor/alerts', label: 'Alertes', icon: AlertCircle },
+        { href: '/dashboard/distributor/favorites', label: 'Favoris', icon: Heart },
+        { href: '/messages', label: 'Messages', icon: MessageSquare }
+      ];
     }
   };
 
@@ -198,30 +194,45 @@ export default function Header() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                   <Input
                     type="text"
-                    placeholder="Rechercher des produits..."
-                    className="pl-10 w-64"
+                    placeholder="Rechercher..."
+                    className="pl-10 w-48"
                   />
                 </div>
-                <Button variant="ghost" size="sm">
-                  <Mic className="h-4 w-4" />
-                </Button>
               </div>
 
-              {/* Cart */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsCartOpen(true)}
-                className="relative"
-              >
-                <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  0
-                </span>
-              </Button>
+              {/* Notifications */}
+              {isAuthenticated && (
+                <Link href="/notifications">
+                  <Button variant="ghost" size="sm" className="relative">
+                    <Bell className="h-5 w-5" />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+              )}
+
+              {/* Cart - only for distributors */}
+              {isAuthenticated && activeRole === 'distributor' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsCartOpen(true)}
+                  className="relative"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {itemCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {itemCount > 9 ? '9+' : itemCount}
+                    </span>
+                  )}
+                </Button>
+              )}
 
               {/* User Menu */}
-              {userProfile ? (
+              {isAuthenticated && profile ? (
                 <div className="relative">
                   <Button
                     variant="ghost"
@@ -230,22 +241,38 @@ export default function Header() {
                   >
                     <UserIcon className="h-5 w-5" />
                     <span className="hidden md:block text-sm">
-                      {userProfile.business_name || user.email}
+                      {profile.business_name || profile.first_name || user?.email}
+                    </span>
+                    <span className={`hidden md:block text-xs px-2 py-0.5 rounded-full ${getRoleBgColor(activeRole)} ${getRoleColor(activeRole)}`}>
+                      {getRoleLabel(activeRole)}
                     </span>
                     <ChevronDown className="h-4 w-4" />
                   </Button>
 
                   {isProfileDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg py-1 z-50 border">
                       {/* Profile Header */}
-                      <div className="px-4 py-2 border-b">
+                      <div className="px-4 py-3 border-b">
                         <p className="text-sm font-medium text-gray-900">
-                          {userProfile.business_name || user.email}
+                          {profile.business_name || `${profile.first_name} ${profile.last_name}`}
                         </p>
-                        <p className={`text-xs ${getProfileColor(userProfile.user_type)}`}>
-                          {getProfileLabel(userProfile.user_type)}
+                        <p className={`text-xs ${getRoleColor(activeRole)}`}>
+                          {getRoleLabel(activeRole)}
                         </p>
+                        {profile.email && (
+                          <p className="text-xs text-gray-500 truncate">{profile.email}</p>
+                        )}
                       </div>
+
+                      {/* Switch Role Button */}
+                      <button
+                        onClick={handleSwitchRole}
+                        disabled={switchingRole}
+                        className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 border-b"
+                      >
+                        <ArrowLeftRight className="h-4 w-4 mr-3" />
+                        {switchingRole ? 'Changement...' : `Passer en ${activeRole === 'producer' ? 'Distributeur' : 'Producteur'}`}
+                      </button>
 
                       {/* Menu Items */}
                       {getProfileMenuItems().map((item) => (
@@ -263,7 +290,7 @@ export default function Header() {
                       {/* Logout */}
                       <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                        className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-t"
                       >
                         <Lock className="h-4 w-4 mr-3" />
                         Se déconnecter
@@ -295,6 +322,22 @@ export default function Header() {
           {/* Mobile Menu */}
           {isMenuOpen && (
             <div className="md:hidden py-4 border-t">
+              {/* Role indicator mobile */}
+              {isAuthenticated && (
+                <div className="px-3 py-2 mb-2">
+                  <span className={`text-xs px-2 py-1 rounded-full ${getRoleBgColor(activeRole)} ${getRoleColor(activeRole)}`}>
+                    Mode {getRoleLabel(activeRole)}
+                  </span>
+                  <button
+                    onClick={handleSwitchRole}
+                    disabled={switchingRole}
+                    className="ml-2 text-xs text-blue-600"
+                  >
+                    Changer
+                  </button>
+                </div>
+              )}
+
               <nav className="space-y-2">
                 {getNavigationItems().map((item) => (
                   <Link
