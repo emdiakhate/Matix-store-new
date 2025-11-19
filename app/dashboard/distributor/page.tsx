@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useMatixUser, useSupabase } from '@/hooks/useSupabase';
 import { formatCurrency } from '@/lib/bictorys';
+import DashboardSidebar from '@/components/DashboardSidebar';
 import {
   Search,
   Bell,

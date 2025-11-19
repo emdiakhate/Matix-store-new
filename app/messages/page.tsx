@@ -131,7 +131,7 @@ export default function MessagesPage() {
       // Get other user info for each room
       const roomsWithInfo: ChatRoom[] = [];
 
-      for (const room of rooms || []) {
+      for (const room of (rooms || []) as any[]) {
         const otherUserId = room.participant_1 === user.id ? room.participant_2 : room.participant_1;
 
         // Get other user profile
