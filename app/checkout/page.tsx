@@ -95,7 +95,7 @@ export default function CheckoutPage() {
         const orderTotal = orderSubtotal + orderPlatformFee + orderDeliveryFee;
 
         // Créer la commande
-        const { data: order, error: orderError } = await supabase
+        const { data: order, error: orderError } = await (supabase as any)
           .from('orders')
           .insert({
             producer_id: producerId,
@@ -127,7 +127,7 @@ export default function CheckoutPage() {
           total_price: item.quantity * item.unitPrice
         }));
 
-        await supabase.from('order_items').insert(orderItems);
+        await (supabase as any).from('order_items').insert(orderItems);
 
         // Initier le paiement si ce n'est pas cash on delivery
         if (paymentMethod !== 'cash_on_delivery') {
@@ -149,7 +149,7 @@ export default function CheckoutPage() {
           }
 
           // Créer l'entrée payment
-          await supabase.from('payments').insert({
+          await (supabase as any).from('payments').insert({
             order_id: order.id,
             amount: orderTotal,
             payment_method: paymentMethod,

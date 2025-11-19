@@ -124,7 +124,7 @@ export default function DistributorDashboardPage() {
       ]);
 
       // Calculer les stats des commandes
-      const orders = ordersResult.data || [];
+      const orders = (ordersResult.data || []) as any[];
       const pendingOrders = orders.filter(o =>
         ['pending_payment', 'paid', 'confirmed', 'preparing', 'ready', 'shipped'].includes(o.status)
       ).length;
@@ -141,7 +141,7 @@ export default function DistributorDashboardPage() {
         .in('status', ['delivered', 'paid', 'confirmed', 'preparing', 'ready', 'shipped'])
         .gte('created_at', startOfMonth.toISOString());
 
-      const monthlySpending = (monthlyOrders || []).reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const monthlySpending = ((monthlyOrders || []) as any[]).reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
       setStats({
         followedProducers: followsResult.count || 0,
@@ -169,7 +169,7 @@ export default function DistributorDashboardPage() {
         .limit(5);
 
       if (listingsData) {
-        setRecentListings(listingsData.map(listing => ({
+        setRecentListings((listingsData as any[]).map(listing => ({
           id: listing.id,
           producer_name: listing.producer?.business_name ||
             `${listing.producer?.first_name || ''} ${listing.producer?.last_name || ''}`.trim() ||

@@ -97,13 +97,13 @@ export default function AlertsPage() {
       ]);
 
       if (categoriesResult.data) {
-        setCategories(categoriesResult.data);
+        setCategories(categoriesResult.data.map((c: any) => ({ id: c.id, name: c.name_fr || c.name })));
       }
 
       if (alertsResult.data) {
-        setAlerts(alertsResult.data.map(alert => ({
+        setAlerts((alertsResult.data as any[]).map(alert => ({
           ...alert,
-          category_name: alert.category?.name || 'Toutes catégories'
+          category_name: alert.category?.name || alert.category?.name_fr || 'Toutes catégories'
         })));
       }
     } catch (error) {
@@ -146,7 +146,7 @@ export default function AlertsPage() {
           ));
         }
       } else {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('distributor_alerts')
           .insert(alertData)
           .select(`
@@ -157,14 +157,14 @@ export default function AlertsPage() {
             min_quantity,
             is_active,
             created_at,
-            category:categories(name)
+            category:categories(name_fr)
           `)
           .single();
 
         if (data) {
           setAlerts([{
             ...data,
-            category_name: data.category?.name || 'Toutes catégories'
+            category_name: data.category?.name_fr || 'Toutes catégories'
           }, ...alerts]);
         }
       }
