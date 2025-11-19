@@ -57,7 +57,7 @@ export default function NewRequestPage() {
       setLoading(true);
       const result = await categoryService.getAll();
       if (result.data) {
-        setCategories(result.data);
+        setCategories(result.data.map((c: any) => ({ id: c.id, name: c.name_fr || c.name })));
       }
     } catch (error) {
       console.error('Erreur chargement catégories:', error);
@@ -72,7 +72,7 @@ export default function NewRequestPage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('distributor_requests')
         .insert({
           distributor_id: user.id,

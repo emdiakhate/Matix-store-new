@@ -100,7 +100,7 @@ export default function OrdersPage() {
         .order('created_at', { ascending: false });
 
       if (data) {
-        setOrders(data.map(order => ({
+        setOrders((data as any[]).map(order => ({
           id: order.id,
           order_number: order.order_number,
           distributor_id: order.distributor_id,
@@ -124,7 +124,7 @@ export default function OrdersPage() {
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('orders')
         .update({ status: newStatus })
         .eq('id', orderId);

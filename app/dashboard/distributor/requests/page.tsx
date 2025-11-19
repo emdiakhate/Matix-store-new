@@ -100,14 +100,14 @@ export default function RequestsPage() {
       ]);
 
       if (categoriesResult.data) {
-        setCategories(categoriesResult.data);
+        setCategories(categoriesResult.data.map((c: any) => ({ id: c.id, name: c.name_fr || c.name })));
       }
 
       if (requestsResult.data) {
-        setRequests(requestsResult.data.map(req => ({
+        setRequests((requestsResult.data as any[]).map(req => ({
           id: req.id,
           category_id: req.category_id,
-          category_name: req.category?.name || 'Non catégorisé',
+          category_name: req.category?.name || req.category?.name_fr || 'Non catégorisé',
           quantity_needed: req.quantity_needed,
           unit: req.unit,
           max_price: req.max_price,
@@ -128,7 +128,7 @@ export default function RequestsPage() {
 
   const updateStatus = async (requestId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('distributor_requests')
         .update({ status: newStatus })
         .eq('id', requestId);

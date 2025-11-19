@@ -123,7 +123,7 @@ async function processPaymentSuccess(
   if (!supabaseAdmin) return
 
   // Mettre à jour le paiement
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('payments')
     .update({
       status: 'completed' as PaymentStatus,
@@ -134,13 +134,13 @@ async function processPaymentSuccess(
     .eq('id', payment.id)
 
   // Mettre à jour la commande
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('orders')
     .update({ status: 'paid' })
     .eq('id', payment.order_id)
 
   // Enregistrer la transaction
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('bictorys_transactions')
     .insert({
       payment_id: payment.id,
@@ -157,7 +157,7 @@ async function processPaymentSuccess(
   const order = payment.orders
 
   // Notifier le producteur
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('notifications')
     .insert({
       user_id: order.producer_id,
@@ -168,7 +168,7 @@ async function processPaymentSuccess(
     })
 
   // Notifier le distributeur
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('notifications')
     .insert({
       user_id: order.distributor_id,
@@ -191,11 +191,13 @@ async function handlePaymentFailed(data: {
   if (!supabaseAdmin) return
 
   // Trouver le paiement
-  const { data: payment } = await supabaseAdmin
+  const { data: paymentData } = await supabaseAdmin
     .from('payments')
     .select('*, orders(*)')
     .eq('bictorys_charge_id', data.chargeId)
     .single()
+
+  const payment = paymentData as any
 
   if (!payment) {
     console.error('Payment not found for failed charge:', data.chargeId)
@@ -203,7 +205,7 @@ async function handlePaymentFailed(data: {
   }
 
   // Mettre à jour le paiement
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('payments')
     .update({
       status: 'failed' as PaymentStatus,
@@ -215,7 +217,7 @@ async function handlePaymentFailed(data: {
     .eq('id', payment.id)
 
   // Enregistrer la transaction
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('bictorys_transactions')
     .insert({
       payment_id: payment.id,
@@ -230,7 +232,7 @@ async function handlePaymentFailed(data: {
 
   // Notifier le distributeur
   const order = payment.orders
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('notifications')
     .insert({
       user_id: order.distributor_id,
@@ -252,11 +254,13 @@ async function handleRefundCompleted(data: {
   if (!supabaseAdmin) return
 
   // Trouver le remboursement
-  const { data: refund } = await supabaseAdmin
+  const { data: refundData } = await supabaseAdmin
     .from('refunds')
     .select('*, payments(*), orders(*)')
     .eq('bictorys_refund_id', data.refundId || data.transactionId)
     .single()
+
+  const refund = refundData as any
 
   if (!refund) {
     console.error('Refund not found:', data.refundId)
@@ -264,7 +268,7 @@ async function handleRefundCompleted(data: {
   }
 
   // Mettre à jour le remboursement
-  await supabaseAdmin
+  await (supabaseAdmin as any)
     .from('refunds')
     .update({
       status: 'completed' as PaymentStatus,
@@ -273,14 +277,14 @@ async function handleRefundCompleted(data: {
     .eq('id', refund.id)
 
   // Mettre à jour le paiement si remboursement total
-  const payment = refund.payments
+  const payment = refund.payments as any
   if (data.amount >= payment.amount) {
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('payments')
       .update({ status: 'refunded' as PaymentStatus })
       .eq('id', payment.id)
   } else {
-    await supabaseAdmin
+    await (supabaseAdmin as any)
       .from('payments')
       .update({ status: 'partially_refunded' as PaymentStatus })
       .eq('id', payment.id)

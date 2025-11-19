@@ -109,15 +109,15 @@ export default function SearchPage() {
       ]);
 
       if (categoriesResult.data) {
-        setCategories(categoriesResult.data);
+        setCategories(categoriesResult.data.map((c: any) => ({ id: c.id, name: c.name_fr || c.name })));
       }
 
       if (favoritesResult.data) {
-        setFavorites(new Set(favoritesResult.data.map(f => f.listing_id)));
+        setFavorites(new Set((favoritesResult.data as any[]).map(f => f.listing_id)));
       }
 
       if (listingsResult.data) {
-        setListings(listingsResult.data.map(listing => ({
+        setListings((listingsResult.data as any[]).map(listing => ({
           id: listing.id,
           producer_id: listing.producer_id,
           producer_name: listing.producer?.business_name ||
@@ -128,7 +128,7 @@ export default function SearchPage() {
           producer_rating: listing.producer?.average_rating || 0,
           product_name: listing.product?.name || 'Produit',
           product_id: listing.product?.id || '',
-          category_name: listing.product?.category?.name || '',
+          category_name: listing.product?.category?.name || listing.product?.category?.name_fr || '',
           quantity_available: listing.quantity_available,
           unit: listing.product?.unit || 'unité',
           unit_price: listing.unit_price,
@@ -164,7 +164,7 @@ export default function SearchPage() {
           return newSet;
         });
       } else {
-        await supabase
+        await (supabase as any)
           .from('favorites')
           .insert({
             user_id: user.id,

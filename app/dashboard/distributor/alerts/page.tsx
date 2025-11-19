@@ -23,11 +23,11 @@ import {
 
 interface Alert {
   id: string;
-  category_id: string;
+  category_id: string | null;
   category_name?: string;
-  keywords?: string;
-  max_price?: number;
-  min_quantity?: number;
+  keywords?: string | null;
+  max_price?: number | null;
+  min_quantity?: number | null;
   is_active: boolean;
   created_at: string;
   matches_count?: number;
@@ -129,7 +129,7 @@ export default function AlertsPage() {
       };
 
       if (editingAlert) {
-        const { error } = await supabase
+        const { error } = await (supabase as any)
           .from('distributor_alerts')
           .update(alertData)
           .eq('id', editingAlert.id);
@@ -179,7 +179,7 @@ export default function AlertsPage() {
 
   const toggleActive = async (alertId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('distributor_alerts')
         .update({ is_active: !currentStatus })
         .eq('id', alertId);

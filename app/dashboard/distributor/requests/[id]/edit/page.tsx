@@ -71,18 +71,19 @@ export default function EditRequestPage() {
       ]);
 
       if (categoriesResult.data) {
-        setCategories(categoriesResult.data);
+        setCategories(categoriesResult.data.map((c: any) => ({ id: c.id, name: c.name_fr || c.name })));
       }
 
       if (requestResult.data) {
+        const data = requestResult.data as any;
         setFormData({
-          category_id: requestResult.data.category_id,
-          quantity_needed: requestResult.data.quantity_needed.toString(),
-          unit: requestResult.data.unit,
-          max_price: requestResult.data.max_price?.toString() || '',
-          delivery_location: requestResult.data.delivery_location || '',
-          deadline: requestResult.data.deadline ? requestResult.data.deadline.split('T')[0] : '',
-          description: requestResult.data.description || ''
+          category_id: data.category_id,
+          quantity_needed: data.quantity_needed.toString(),
+          unit: data.unit,
+          max_price: data.max_price?.toString() || '',
+          delivery_location: data.delivery_location || '',
+          deadline: data.deadline ? data.deadline.split('T')[0] : '',
+          description: data.description || ''
         });
       } else {
         router.push('/dashboard/distributor/requests');
@@ -101,7 +102,7 @@ export default function EditRequestPage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('distributor_requests')
         .update({
           category_id: formData.category_id,

@@ -113,7 +113,7 @@ export default function ProducerDashboardPage() {
       ]);
 
       // Calculer les stats
-      const orders = ordersResult.data || [];
+      const orders = (ordersResult.data || []) as any[];
       const pendingOrders = orders.filter(o =>
         ['pending_payment', 'paid', 'confirmed', 'preparing', 'ready', 'shipped'].includes(o.status)
       ).length;
@@ -131,7 +131,7 @@ export default function ProducerDashboardPage() {
         .eq('status', 'delivered')
         .gte('created_at', startOfMonth.toISOString());
 
-      const monthlyRevenue = (monthlyOrders || []).reduce((sum, o) => sum + (o.total_amount || 0), 0);
+      const monthlyRevenue = ((monthlyOrders || []) as any[]).reduce((sum, o) => sum + (o.total_amount || 0), 0);
 
       setStats({
         totalProducts: productsResult.count || 0,
@@ -158,7 +158,7 @@ export default function ProducerDashboardPage() {
         .limit(5);
 
       if (recentOrdersData) {
-        setRecentOrders(recentOrdersData.map(order => ({
+        setRecentOrders((recentOrdersData as any[]).map(order => ({
           id: order.id,
           order_number: order.order_number,
           distributor_name: order.distributor?.business_name ||

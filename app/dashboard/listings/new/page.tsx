@@ -99,7 +99,7 @@ export default function NewListingPage() {
 
     setSaving(true);
     try {
-      const { error: insertError } = await supabase
+      const { error: insertError } = await (supabase as any)
         .from('producer_listings')
         .insert({
           producer_id: user.id,

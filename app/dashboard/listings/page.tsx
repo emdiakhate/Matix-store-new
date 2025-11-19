@@ -85,7 +85,7 @@ export default function ListingsPage() {
         .order('created_at', { ascending: false });
 
       if (data) {
-        setListings(data.map(listing => ({
+        setListings((data as any[]).map(listing => ({
           id: listing.id,
           product_id: listing.product_id,
           product_name: listing.product?.name || 'Produit',
@@ -108,7 +108,7 @@ export default function ListingsPage() {
 
   const updateStatus = async (listingId: string, newStatus: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('producer_listings')
         .update({ status: newStatus })
         .eq('id', listingId);
