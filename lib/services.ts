@@ -58,7 +58,7 @@ export const userService = {
   async createUser(
     userId: string,
     email: string,
-    phone: string,
+    phone?: string,
     initialRole: UserRole = 'producer'
   ): Promise<SupabaseResponse<FullUser>> {
     // Créer l'entrée user
@@ -68,7 +68,7 @@ export const userService = {
         id: userId,
         active_role: initialRole,
         is_producer_enabled: true,
-        is_distributor_enabled: false
+        is_distributor_enabled: initialRole === 'distributor'
       })
       .select()
       .single()
@@ -81,7 +81,7 @@ export const userService = {
       .insert({
         user_id: userId,
         email,
-        phone,
+        phone: phone || '',
         region: 'Dakar'
       })
       .select()
@@ -245,6 +245,11 @@ export const userService = {
 // ============================================================================
 
 export const categoryService = {
+  // Obtenir toutes les catégories (alias)
+  async getAll(): Promise<SupabaseResponse<Category[]>> {
+    return this.getAllCategories()
+  },
+
   // Obtenir toutes les catégories
   async getAllCategories(): Promise<SupabaseResponse<Category[]>> {
     const { data, error } = await supabase
